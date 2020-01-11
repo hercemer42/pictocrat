@@ -1,0 +1,133 @@
+//colors
+$menuBackground: #252525;
+$menuColor: #DDDDDD;
+$background: #eaeaea;
+
+body {
+  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+}
+
+.container {
+  background: $background;
+  height: 100vh;
+  cursor: pointer;
+
+  .playPause {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 10;
+    font-size: 70px;
+    color: white;
+    text-shadow: -1px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    opacity: 0;
+    transition: opacity .7s ease;
+  }
+
+  .recentlyClicked {
+    opacity: 1 !important;
+    transition-duration: 0s;
+  }
+
+  img, > div {
+    max-width: 100%;
+    width: auto;
+    max-height: 100%;
+    height: auto;
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.menuOuter {
+  position: absolute;
+  min-height: 20px;
+  width: 100%;
+  top: 0;
+  z-index: 1;
+  user-select: none;
+
+  .menu {
+    background: $menuBackground;
+    padding: 10px 0px;
+    vertical-align: middle;
+    
+    &:not(.wait) {
+      opacity: 0;
+    }
+
+    .button {
+      display: inline;
+      padding: 0px 10px;
+      color: $menuColor;
+      font-size: 2rem;
+      position: relative;
+      cursor: pointer;
+
+      &.delete {
+        font-size: 2.2rem;
+
+        span {
+          font-size: 1.4rem;
+          position: absolute;
+          left: 45%;
+          top: 35%;
+          z-index: 1;
+
+          &::before {
+            position: absolute;
+            font-size: 1.0rem;
+            top: 4px;
+            left: 1px;
+            color: $menuBackground;
+            content: '';
+            z-index: -1;
+          }
+        }
+      }
+    }
+
+    >span {
+      display: inline;
+      color: $menuColor;
+    }
+  }
+
+  &:hover .menu {
+    opacity: 1;
+    transition: opacity .25s ease-in-out;
+  }
+}
+
+.settings-container {
+  .settings {
+    background-color: $menuBackground;
+    color: $menuColor;
+    position: absolute;
+    z-index: 10;
+    width: 800px;
+    max-width: 90%;
+    max-height: 90%;
+    height: 600px;
+    margin: 5%;
+    border: thin gray solid;
+    padding: 10px;
+
+    h4 {
+      margin-top: 0px
+    }
+  }
+
+  .close {
+    border: thin gray solid;
+    float: right;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 21px;
+    padding: 0px 5px;
+  }
+}

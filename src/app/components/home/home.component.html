@@ -1,0 +1,45 @@
+<div class='menuOuter'>
+  <div class='menu' [class.wait]='message'>
+    <!-- <button (click)='pickDirectory()'>Open folder</button> -->
+    <div class='button' (click)='toggleSlideShow()'>{{stopped ? '' : ''}}</div>
+    <div class='button' (click)='previous()'></div>
+    <div class='button' (click)='next()'></div>
+    <div class='button' (click)='deleteImage()' *ngIf='imageDetails'></div>
+    <div class='button delete' (click)='deleteDirectory()' *ngIf='imageDetails'><span></span></div>
+    <div class='button' (click)='hideImage()' *ngIf='imageDetails'></div>
+    <div class='button delete' (click)='hideDirectory()' *ngIf='imageDetails'><span></span></div>
+    <div class='button' (click)='scan()'></div>
+    <div class='button' (click)='toggleSettings()'></div>
+    <span [hidden]='!message'>{{message}}</span>
+  </div>
+</div>
+<div class='settings-container'>
+  <div class='settings' *ngIf='showSettings'>
+    <div class='close' (click)='toggleSettings()'>X</div>
+    <h4>
+      Settings
+    </h4>
+    <div *ngFor='let directory of hiddenList'>
+      <input type='checkbox' [(ngModel)]='directory.hidden' (change)='toggleHideDirectory(directory)'>
+      <span>{{directory.directoryName}}</span>
+      <div *ngFor='let image of directory.images'>
+        <input type='checkbox' [(ngModel)]='image.hidden' (change)='toggleHide(image)'>
+        <span>{{image.directory + '/' + image.imageName}}</span>
+      </div>
+    </div>
+  </div>
+</div>
+<div class='container' (click)='toggleSlideShow()'>
+  <div class='playPause' [class.recentlyClicked]='recentlyClicked'>{{stopped ? '' : ''}}</div>
+  <img
+    *ngIf='imageDetails'
+    [src]='imageDetails.directory + "/" + imageDetails.imageName'
+    (error)='notFound = true'
+  />
+  <div *ngIf='settings && !settings.pictureDirectory'>Pick your picture folder to get started.
+    <button (click)='pickDirectory()'>Open Folder</button>
+  </div>
+  <div *ngIf='notFound'>File not found.
+    <button (click)='scan()'>Rescan ?</button>
+  </div>
+</div>
