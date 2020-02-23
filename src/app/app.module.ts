@@ -8,15 +8,18 @@ import { HttpModule } from '@angular/http'
 
 import { AppComponent } from './app.component'
 import { HomeComponent } from './components/home/home.component'
+import { SettingsComponent } from './components/settings/settings.component'
 
 import { AppRoutingModule } from './app-routing.module'
 
 import { ElectronService } from './providers/electron.service'
+import { UiService } from './services/ui.service'
 
 @NgModule({
   declarations: [
     AppComponent,
-    HomeComponent
+    HomeComponent,
+    SettingsComponent
   ],
   imports: [
     BrowserModule,
@@ -24,7 +27,7 @@ import { ElectronService } from './providers/electron.service'
     HttpModule,
     AppRoutingModule
   ],
-  providers: [ElectronService],
+  providers: [ElectronService, UiService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

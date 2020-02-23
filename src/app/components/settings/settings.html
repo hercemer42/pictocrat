@@ -1,0 +1,24 @@
+<div class='settings'>
+  <div class='close' (click)='uiService.toggleSettings()'>X</div>
+  <h4>
+    Settings
+  </h4>
+  <div id ='settings-main'>
+    <div id='settings-left'>
+      <ul>
+        <li>General</li>
+        <li>Unhide</li>
+      </ul>
+    </div>
+    <div id='settings-right'>settings right</div>
+  </div>
+  <div *ngFor='let directory of hiddenList'>
+    <input type='checkbox' [(ngModel)]='directory.hidden' (change)='toggleHideDirectory(directory)'>
+    <span>{{directory.directoryName}}</span>
+    <div *ngFor='let image of directory.images'>
+      <input type='checkbox' [(ngModel)]='image.hidden' (change)='toggleHide(image)'>
+      <span>{{image.directory + '/' + image.imageName}}</span>
+    </div>
+  </div>
+</div>
+

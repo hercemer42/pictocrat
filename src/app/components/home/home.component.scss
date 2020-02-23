@@ -1,7 +1,4 @@
-//colors
-$menuBackground: #252525;
-$menuColor: #DDDDDD;
-$background: #eaeaea;
+@import '../../shared/scss/styles.scss';
 
 body {
   font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
@@ -103,31 +100,3 @@ body {
   }
 }
 
-.settings-container {
-  .settings {
-    background-color: $menuBackground;
-    color: $menuColor;
-    position: absolute;
-    z-index: 10;
-    width: 800px;
-    max-width: 90%;
-    max-height: 90%;
-    height: 600px;
-    margin: 5%;
-    border: thin gray solid;
-    padding: 10px;
-
-    h4 {
-      margin-top: 0px
-    }
-  }
-
-  .close {
-    border: thin gray solid;
-    float: right;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 21px;
-    padding: 0px 5px;
-  }
-}

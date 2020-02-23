@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core'
 import { ipcRenderer } from 'electron'
 import { ImageDetails } from './models'
-import { timeout } from 'q';
+import { UiService } from '../../services/ui.service'
 
 @Component({
   selector: 'app-home',
@@ -13,15 +13,13 @@ export class HomeComponent implements OnInit {
   settings: any
   imageDetails: ImageDetails
   hiddenList = []
-  stopped = true
   message: string
   firstRun = true
   notFound = false
-  showSettings = false
   recentlyClicked = false
   timer = null
 
-  constructor() { }
+  constructor(private uiService: UiService) { }
 
   pickDirectory() {
     ipcRenderer.send('pickDirectory')
@@ -73,8 +71,9 @@ export class HomeComponent implements OnInit {
     this.recentlyClicked = true
     clearTimeout(this.timer)
     this.timer = setTimeout(() => { this.recentlyClicked = false }, 3000)
-    this.stopped = !this.stopped
-    this.stopped ? ipcRenderer.send('stopShow') : ipcRenderer.send('start')
+    console.log(this.uiService)
+    this.uiService.stopped = !this.uiService.stopped
+    this.uiService.stopped ? ipcRenderer.send('stopShow') : ipcRenderer.send('start')
   }
 
   showMessage(message) {
@@ -90,15 +89,8 @@ export class HomeComponent implements OnInit {
   }
 
   previous() {
-    this.stopped = true
+    this.uiService.stopped = true
     ipcRenderer.send('previous')
-  }
-
-  toggleSettings() {
-    this.stopped = true
-    ipcRenderer.send('stopShow')
-    this.showSettings = !this.showSettings
-    ipcRenderer.send('getHiddenList')
   }
 
   ngOnInit() {
@@ -107,7 +99,7 @@ export class HomeComponent implements OnInit {
     ipcRenderer.on('newImage', (event, imageDetails) => {
 
       if (this.firstRun) {
-        this.stopped = this.firstRun = false
+        this.uiService.stopped = this.firstRun = false
       }
 
       this.imageDetails = imageDetails
@@ -119,12 +111,12 @@ export class HomeComponent implements OnInit {
 
     ipcRenderer.on('deleted', (event, message) => {
       this.showMessage(message)
-      this.stopped ? this.imageDetails = null : ipcRenderer.send('start')
+      this.uiService.stopped ? this.imageDetails = null : ipcRenderer.send('start')
     })
 
     ipcRenderer.on('hidden', (event, message) => {
       this.showMessage(message)
-      this.stopped ? this.imageDetails = null : ipcRenderer.send('start')
+      this.uiService.stopped ? this.imageDetails = null : ipcRenderer.send('start')
     })
 
     ipcRenderer.on('sendSettings', (event, settings) => {
