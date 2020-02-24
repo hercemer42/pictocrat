@@ -1,7 +1,7 @@
 import * as fs from 'fs'
-import { app, BrowserWindow, screen, ipcMain, dialog } from 'electron'
-import settings = require('electron-settings')
-import rimraf = require('rimraf')
+import { dialog } from 'electron'
+const rimraf = require('rimraf')
+const settings = require('electron-settings')
 const config = require('../config')
 const slideShow = require('../services/slideshow')
 const db = require('../services/database')

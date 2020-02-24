@@ -1,5 +1,4 @@
-import settings = require('electron-settings')
-import Rx = require('rxjs/Rx')
+const Rx = require('rxjs/Rx')
 const db = require('../services/database')
 const config = require('../config')
 let subscription

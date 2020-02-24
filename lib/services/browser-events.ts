@@ -1,5 +1,5 @@
-import { app, BrowserWindow, ipcMain  } from 'electron'
-import settings = require('electron-settings')
+import { ipcMain  } from 'electron'
+const settings = require('electron-settings')
 const fileService = require('./files')
 const slideShow = require('../services/slideshow')
 

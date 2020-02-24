@@ -1,15 +1,15 @@
 {
+    "extends": "../tsconfig.json",
     "compilerOptions": {
-        "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "moduleResolution": "node",
-        "target": "ES5",
-        "outDir": "../dist"
+      "outDir": "../out-tsc/lib",
+      "module": "es2015",
+      "baseUrl": "",
+      "types": []
     },
-    "include": [
-        "./**/*"
-    ],
     "exclude": [
-        "**/*.spec.ts"
-    ]
-}
+      "**/*.spec.ts"
+    ],
+    "include": [
+      "services/**/*"
+    ],
+  }

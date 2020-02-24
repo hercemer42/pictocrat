@@ -1,16 +1,17 @@
+
 import { app, BrowserWindow, screen } from 'electron';
 import * as path from 'path';
+import * as url from 'url';
+const fileService = require('./lib/services/files')
+const idleService = require('./lib/services/idle')
+const config = require('./lib/config')
+const settings = require('electron-settings')
 
-let win, serve;
-const args = process.argv.slice(1);
-serve = args.some(val => val === '--serve');
+let win: BrowserWindow = null;
+const args = process.argv.slice(1),
+    serve = args.some(val => val === '--serve');
 
-if (serve) {
-  require('electron-reload')(__dirname, {
-  });
-}
-
-function createWindow() {
+function createWindow(): BrowserWindow {
 
   const electronScreen = screen;
   const size = electronScreen.getPrimaryDisplay().workAreaSize;
@@ -20,13 +21,26 @@ function createWindow() {
     x: 0,
     y: 0,
     width: size.width,
-    height: size.height
+    height: size.height,
+    webPreferences: {
+      nodeIntegration: true,
+      allowRunningInsecureContent: (serve) ? true : false,
+    },
   });
 
-  // and load the index.html of the app.
-  win.loadURL('file://' + __dirname + '/index.html');
+  if (serve) {
+    require('electron-reload')(__dirname, {
+      electron: require(`${__dirname}/node_modules/electron`)
+    });
+    win.loadURL('http://localhost:4200');
+  } else {
+    win.loadURL(url.format({
+      pathname: path.join(__dirname, 'dist/index.html'),
+      protocol: 'file:',
+      slashes: true
+    }));
+  }
 
-  // Open the DevTools.
   if (serve) {
     win.webContents.openDevTools();
   }
@@ -38,6 +52,23 @@ function createWindow() {
     // when you should delete the corresponding element.
     win = null;
   });
+
+  return win;
+}
+
+function scanPeriodically() {
+  setTimeout(() => {
+    fileService.scan()
+  }, 30 * 60 * 1000)
+}
+
+function initializeSettings(settings) {
+
+  for (const property in config.defaults) {
+    if (!settings.get(property)) {
+      settings.set(property, config.defaults[property])
+    }
+  }
 }
 
 try {
@@ -63,6 +94,15 @@ try {
       createWindow();
     }
   });
+
+
+  initializeSettings(settings)
+  idleService.startTimer(win)
+
+  if (settings.get('PictureDirectory')) {
+    fileService.scan()
+    scanPeriodically()
+  }
 
 } catch (e) {
   // Catch Error

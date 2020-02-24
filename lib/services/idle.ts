@@ -1,5 +1,5 @@
-import settings = require('electron-settings')
-import systemIdleTime = require('@paulcbetts/system-idle-time')
+const settings = require('electron-settings')
+const systemIdleTime = require('desktop-idle')
 
 function startTimer(win) {
   if (!settings.get('maximizeOnIdle')) {
