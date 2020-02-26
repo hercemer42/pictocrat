@@ -1,6 +1,7 @@
 const Rx = require('rxjs/Rx')
 const db = require('../services/database')
 const config = require('../config')
+const electronSettings = require('electron-settings')
 let subscription
 const imageHistory = { images: [], position: 0 }
 
@@ -113,12 +114,13 @@ function nextRandomImage(event) {
 }
 
 function start(event) {
-  if (settings.get('pictureDirectory')) {
+  console.log('start')
+  if (electronSettings.get('pictureDirectory')) {
     db.count({}, function (err, count) {
       if (count) {
         nextRandomImage(event)
 
-        subscription = Rx.Observable.of(0).delay(settings.get('interval')).repeat().subscribe(() => {
+        subscription = Rx.Observable.of(0).delay(electronSettings.get('interval')).repeat().subscribe(() => {
           nextRandomImage(event)
         })
       }

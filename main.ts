@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as url from 'url';
 const fileService = require('./lib/services/files')
 const idleService = require('./lib/services/idle')
+require('./lib/services/browser-events')
 const config = require('./lib/config')
 const settings = require('electron-settings')
 
@@ -24,6 +25,7 @@ function createWindow(): BrowserWindow {
     height: size.height,
     webPreferences: {
       nodeIntegration: true,
+      webSecurity: false,
       allowRunningInsecureContent: (serve) ? true : false,
     },
   });

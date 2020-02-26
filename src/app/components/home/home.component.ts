@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core'
 import { ipcRenderer } from 'electron'
 import { ImageDetails } from './models'
 import { UiService } from '../../services/ui.service'
+import { faPlay, faPause, faCaretLeft, faCaretRight, faTrashAlt, faFolder, faBan, faSync, faCog } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-home',
@@ -18,6 +19,15 @@ export class HomeComponent implements OnInit {
   notFound = false
   recentlyClicked = false
   timer = null
+  faPlay = faPlay
+  faPause = faPause
+  faCaretLeft = faCaretLeft
+  faCaretRight = faCaretRight
+  faTrashAlt = faTrashAlt
+  faFolder = faFolder
+  faBan = faBan
+  faSync = faSync
+  faCog = faCog
 
   constructor(private uiService: UiService) { }
 
@@ -71,7 +81,6 @@ export class HomeComponent implements OnInit {
     this.recentlyClicked = true
     clearTimeout(this.timer)
     this.timer = setTimeout(() => { this.recentlyClicked = false }, 3000)
-    console.log(this.uiService)
     this.uiService.stopped = !this.uiService.stopped
     this.uiService.stopped ? ipcRenderer.send('stopShow') : ipcRenderer.send('start')
   }
@@ -101,7 +110,6 @@ export class HomeComponent implements OnInit {
       if (this.firstRun) {
         this.uiService.stopped = this.firstRun = false
       }
-
       this.imageDetails = imageDetails
     })
 

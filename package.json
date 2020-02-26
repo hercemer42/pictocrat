@@ -37,7 +37,10 @@
     "lint": "ng lint"
   },
   "dependencies": {
-    "font-awesome": "^4.7.0"
+    "@fortawesome/angular-fontawesome": "0.6.0",
+    "@fortawesome/fontawesome-svg-core": "1.2.27",
+    "@fortawesome/free-regular-svg-icons": "^5.12.1",
+    "@fortawesome/free-solid-svg-icons": "5.12.1"
   },
   "devDependencies": {
     "@angular-builders/custom-webpack": "8.4.1",

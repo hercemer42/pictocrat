@@ -1,24 +1,48 @@
 <div class='menuOuter'>
   <div class='menu' [class.wait]='message || uiService.showSettings'>
     <!-- <button (click)='pickDirectory()'>Open folder</button> -->
-    <div class='button' (click)='toggleSlideShow()'>{{stopped ? '' : ''}}</div>
-    <div class='button' (click)='previous()'></div>
-    <div class='button' (click)='next()'></div>
-    <div class='button' (click)='deleteImage()' *ngIf='imageDetails'></div>
-    <div class='button delete' (click)='deleteDirectory()' *ngIf='imageDetails'><span></span></div>
-    <div class='button' (click)='hideImage()' *ngIf='imageDetails'></div>
-    <div class='button delete' (click)='hideDirectory()' *ngIf='imageDetails'><span></span></div>
-    <div class='button' (click)='scan()'></div>
-    <div class='button' (click)='uiService.toggleSettings()'></div>
+    <div class='button' (click)='toggleSlideShow()'>
+      <fa-icon [icon]="stopped ? faPause : faPlay"></fa-icon>
+    </div>
+    <div class='button' (click)='previous()'>
+      <fa-icon [icon]="faCaretLeft"></fa-icon>
+    </div>
+    <div class='button' (click)='next()'>
+      <fa-icon [icon]="faCaretRight"></fa-icon>
+    </div>
+    <div class='button' (click)='deleteImage()' *ngIf='imageDetails'>
+      <fa-icon [icon]="faTrashAlt"></fa-icon>
+    </div>
+    <div class='button delete' (click)='deleteDirectory()' *ngIf='imageDetails'>
+      <fa-icon [icon]="faTrashAlt"></fa-icon>
+      <span>
+        <fa-icon [icon]="faFolder"></fa-icon>
+      </span>
+    </div>
+    <div class='button' (click)='hideImage()' *ngIf='imageDetails'>
+      <fa-icon [icon]="faBan"></fa-icon>
+    </div>
+    <div class='button delete' (click)='hideDirectory()' *ngIf='imageDetails'>
+      <fa-icon [icon]="faBan"></fa-icon>
+      <span>
+        <fa-icon [icon]="faFolder"></fa-icon>
+      </span>
+    </div>
+    <div class='button' (click)='scan()'>
+      <fa-icon [icon]="faSync"></fa-icon>
+    </div>
+    <div class='button' (click)='uiService.toggleSettings()'>
+      <fa-icon [icon]="faCog"></fa-icon>
+    </div>
     <span [hidden]='!message'>{{message}}</span>
   </div>
 </div>
 <settings-component *ngIf='uiService.showSettings'></settings-component>
 <div class='container' (click)='toggleSlideShow()'>
-  <div class='playPause' [class.recentlyClicked]='recentlyClicked'>{{stopped ? '' : ''}}</div>
+  <div class='playPause' [class.recentlyClicked]='recentlyClicked'><fa-icon [icon]="stopped ? faPause : faPlay"></fa-icon></div>
   <img
     *ngIf='imageDetails'
-    [src]='imageDetails.directory + "/" + imageDetails.imageName'
+    [src]='"file://"+ imageDetails.directory + "/" + imageDetails.imageName'
     (error)='notFound = true'
   />
   <div *ngIf='settings && !settings.pictureDirectory'>Pick your picture folder to get started.

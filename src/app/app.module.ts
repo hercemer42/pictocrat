@@ -13,7 +13,8 @@ import { SettingsComponent } from './components/settings/settings.component'
 import { AppRoutingModule } from './app-routing.module'
 
 import { ElectronService } from './providers/electron.service'
-import { UiService } from './services/ui.service'
+import { UiService } from './services/ui.service';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'
 
 @NgModule({
   declarations: [
@@ -25,7 +26,8 @@ import { UiService } from './services/ui.service'
     BrowserModule,
     FormsModule,
     HttpClientModule,
-    AppRoutingModule
+    AppRoutingModule,
+    FontAwesomeModule
   ],
   providers: [ElectronService, UiService],
   bootstrap: [AppComponent]
