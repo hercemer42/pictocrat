@@ -7,6 +7,7 @@ const idleService = require('./lib/services/idle')
 require('./lib/services/browser-events')
 const config = require('./lib/config')
 const settings = require('electron-settings')
+const server = require('./lib/services/server')
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -25,7 +26,6 @@ function createWindow(): BrowserWindow {
     height: size.height,
     webPreferences: {
       nodeIntegration: true,
-      webSecurity: false,
       allowRunningInsecureContent: (serve) ? true : false,
     },
   });
@@ -65,6 +65,7 @@ function scanPeriodically() {
 }
 
 function initializeSettings(settings) {
+  settings.set('expressJsPort', config.expressJsPort)
 
   for (const property in config.defaults) {
     if (!settings.get(property)) {
@@ -97,12 +98,14 @@ try {
     }
   });
 
-
   initializeSettings(settings)
   idleService.startTimer(win)
 
-  if (settings.get('PictureDirectory')) {
+  let pictureDirectory = settings.get('pictureDirectory')
+
+  if (pictureDirectory) {
     fileService.scan()
+    server.startStaticFileServer(pictureDirectory, config.expressJsPort)
     scanPeriodically()
   }
 

@@ -113,9 +113,11 @@ function nextRandomImage(event) {
   })
 }
 
-function start(event) {
-  console.log('start')
-  if (electronSettings.get('pictureDirectory')) {
+async function start(event) {
+  let pictureDirectory = electronSettings.get('pictureDirectory')
+
+  if (pictureDirectory) {
+
     db.count({}, function (err, count) {
       if (count) {
         nextRandomImage(event)

@@ -41,8 +41,8 @@
 <div class='container' (click)='toggleSlideShow()'>
   <div class='playPause' [class.recentlyClicked]='recentlyClicked'><fa-icon [icon]="stopped ? faPause : faPlay"></fa-icon></div>
   <img
-    *ngIf='imageDetails'
-    [src]='"file://"+ imageDetails.directory + "/" + imageDetails.imageName'
+    *ngIf='imageDetails && settings'
+    [src]='"http://localhost:" + settings.expressJsPort + "/" + imageDetails.relativeDirectory + "/" + imageDetails.imageName'
     (error)='notFound = true'
   />
   <div *ngIf='settings && !settings.pictureDirectory'>Pick your picture folder to get started.

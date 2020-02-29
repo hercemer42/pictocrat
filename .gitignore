@@ -8,6 +8,7 @@
 /release
 main.js
 src/**/*.js
+lib/**/*.js
 !src/karma.conf.js
 *.js.map
 

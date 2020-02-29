@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core'
 import { ipcRenderer } from 'electron'
 import { ImageDetails } from './models'
 import { UiService } from '../../services/ui.service'
@@ -29,7 +29,7 @@ export class HomeComponent implements OnInit {
   faSync = faSync
   faCog = faCog
 
-  constructor(private uiService: UiService) { }
+  constructor(private uiService: UiService, private ref: ChangeDetectorRef) { }
 
   pickDirectory() {
     ipcRenderer.send('pickDirectory')
@@ -106,11 +106,12 @@ export class HomeComponent implements OnInit {
     // ipcRenderer.send('start')
 
     ipcRenderer.on('newImage', (event, imageDetails) => {
-
       if (this.firstRun) {
         this.uiService.stopped = this.firstRun = false
       }
       this.imageDetails = imageDetails
+    // @TODO why is this necessary?
+      this.ref.detectChanges()
     })
 
     ipcRenderer.on('message', (event, message) => {

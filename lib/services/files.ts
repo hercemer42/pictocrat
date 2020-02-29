@@ -5,8 +5,15 @@ const settings = require('electron-settings')
 const config = require('../config')
 const slideShow = require('../services/slideshow')
 const db = require('../services/database')
+const server = require('../services/server')
 
-function readDirectory(directory = settings.get('pictureDirectory'), entries = []) {
+function readDirectory(directory, entries = []) {
+  let rootDirectory = settings.get('pictureDirectory')
+
+  if (!directory) {
+    directory = rootDirectory
+  }
+
   const contents = fs.readdirSync(directory)
 
   contents.map((imageName) => {
@@ -23,6 +30,7 @@ function readDirectory(directory = settings.get('pictureDirectory'), entries = [
           const entry = {
             imageName: imageName,
             directory: directory,
+            relativeDirectory: directory.replace(rootDirectory, ''),
             shown: false,
             hidden: false
           }
@@ -181,8 +189,9 @@ function toggleHideDirectory(event, directory) {
 }
 
 function pickDirectory(event) {
-  const dir = dialog.showOpenDialog({ properties: ['openDirectory'] })
-
+  console.log('what the')
+  const dir = dialog.showOpenDialogSync({ properties: ['openDirectory'] })
+  console.log('fuck')
   if (!dir) {
     return
   }
@@ -190,13 +199,13 @@ function pickDirectory(event) {
   slideShow.stopShow()
 
   settings.set('pictureDirectory', dir[0])
+  server.startStaticFileServer(dir[0], config.expressJsPort)
 
   db.remove({}, { multi: true }, function () {
     db.insert(readDirectory(dir[0]), ((err) => {
       slideShow.start(event)
     }))
   })
-
 }
 
 module.exports = {

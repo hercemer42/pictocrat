@@ -15,5 +15,6 @@ module.exports = {
     interval: 3000,
     maximizeOnIdle: true,
     idleTimeout: 900000
-  }
+  },
+  expressJsPort: 3000
 }
