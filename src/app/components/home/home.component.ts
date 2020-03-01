@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core'
 import { ipcRenderer } from 'electron'
 import { ImageDetails } from './models'
 import { UiService } from '../../services/ui.service'
-import { faPlay, faPause, faCaretLeft, faCaretRight, faTrashAlt, faFolder, faBan, faSync, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faStepBackward, faStepForward, faTrashAlt, faFolder, faMinusCircle, faSync, faCog } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-home',
@@ -21,11 +21,11 @@ export class HomeComponent implements OnInit {
   timer = null
   faPlay = faPlay
   faPause = faPause
-  faCaretLeft = faCaretLeft
-  faCaretRight = faCaretRight
+  faStepBackward = faStepBackward
+  faStepForward = faStepForward
   faTrashAlt = faTrashAlt
   faFolder = faFolder
-  faBan = faBan
+  faMinusCircle = faMinusCircle
   faSync = faSync
   faCog = faCog
 

@@ -1,4 +1,3 @@
-
 import { app, BrowserWindow, screen } from 'electron';
 import * as path from 'path';
 import * as url from 'url';
@@ -25,8 +24,7 @@ function createWindow(): BrowserWindow {
     width: size.width,
     height: size.height,
     webPreferences: {
-      nodeIntegration: true,
-      allowRunningInsecureContent: (serve) ? true : false,
+      nodeIntegration: true
     },
   });
 
