@@ -5,6 +5,9 @@ const slideShow = require('../services/slideshow')
 
 ipcMain.on('start', (event, arg) => {
   slideShow.start(event)
+})
+
+ipcMain.on('getSettings', (event, arg) => {
   event.sender.send('sendSettings', settings.getAll())
 })
 

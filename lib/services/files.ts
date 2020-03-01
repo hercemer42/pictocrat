@@ -184,14 +184,11 @@ function toggleHide(event, imageDetails) {
 }
 
 function toggleHideDirectory(event, directory) {
-  console.log('directory', directory)
   db.update( { directory: directory.directoryName }, { $set: { hidden: directory.hidden } })
 }
 
 function pickDirectory(event) {
-  console.log('what the')
   const dir = dialog.showOpenDialogSync({ properties: ['openDirectory'] })
-  console.log('fuck')
   if (!dir) {
     return
   }
@@ -203,6 +200,7 @@ function pickDirectory(event) {
 
   db.remove({}, { multi: true }, function () {
     db.insert(readDirectory(dir[0]), ((err) => {
+      event.sender.send('sendSettings', settings.getAll())
       slideShow.start(event)
     }))
   })

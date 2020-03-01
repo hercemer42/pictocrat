@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core'
+import { Component, OnInit, NgZone } from '@angular/core'
 import { ipcRenderer } from 'electron'
 import { ImageDetails } from './models'
 import { UiService } from '../../services/ui.service'
@@ -29,7 +29,8 @@ export class HomeComponent implements OnInit {
   faSync = faSync
   faCog = faCog
 
-  constructor(private uiService: UiService, private ref: ChangeDetectorRef) { }
+  constructor(private uiService: UiService, readonly nz: NgZone
+) { }
 
   pickDirectory() {
     ipcRenderer.send('pickDirectory')
@@ -102,47 +103,59 @@ export class HomeComponent implements OnInit {
     ipcRenderer.send('previous')
   }
 
+  async start() {
+    await ipcRenderer.send('getSettings')
+    await ipcRenderer.send('start')
+  }
+
   ngOnInit() {
-    // ipcRenderer.send('start')
+    this.start()
 
     ipcRenderer.on('newImage', (event, imageDetails) => {
-      if (this.firstRun) {
-        this.uiService.stopped = this.firstRun = false
-      }
-      this.imageDetails = imageDetails
-    // @TODO why is this necessary?
-      this.ref.detectChanges()
+      this.nz.run(() => {
+        if (this.firstRun) {
+          this.uiService.stopped = this.firstRun = false
+        }
+
+        this.imageDetails = imageDetails
+      })
     })
 
     ipcRenderer.on('message', (event, message) => {
-      this.showMessage(message)
+      this.nz.run(() => {this.showMessage(message)})
     })
 
     ipcRenderer.on('deleted', (event, message) => {
-      this.showMessage(message)
-      this.uiService.stopped ? this.imageDetails = null : ipcRenderer.send('start')
+      this.nz.run(() => {
+        this.showMessage(message)
+        this.uiService.stopped ? this.imageDetails = null : ipcRenderer.send('start')
+      })
     })
 
     ipcRenderer.on('hidden', (event, message) => {
-      this.showMessage(message)
-      this.uiService.stopped ? this.imageDetails = null : ipcRenderer.send('start')
+      this.nz.run(() => {
+        this.showMessage(message)
+        this.uiService.stopped ? this.imageDetails = null : ipcRenderer.send('start')
+      })
     })
 
     ipcRenderer.on('sendSettings', (event, settings) => {
-      this.settings = settings
+      this.nz.run(() => {this.settings = settings})
     })
 
     ipcRenderer.on('sendHiddenList', (event, hiddenList) => {
-      const directories = {}
+      this.nz.run(() => {
+        const directories = {}
 
-      hiddenList.forEach(e => {
-        const dir = directories[e.directory]
-        dir ? dir.push(e) : directories[e.directory] = [e]
-      })
+        hiddenList.forEach(e => {
+          const dir = directories[e.directory]
+          dir ? dir.push(e) : directories[e.directory] = [e]
+        })
 
-      this.hiddenList = Object.keys(directories).map(e => {
-        return { directoryName: e, images: directories[e], hidden: true }
+        this.hiddenList = Object.keys(directories).map(e => {
+          return { directoryName: e, images: directories[e], hidden: true }
+        })
       })
-    })
+   })
   }
 }
