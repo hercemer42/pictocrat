@@ -2,7 +2,7 @@ import { Component, OnInit, NgZone } from '@angular/core'
 import { ipcRenderer } from 'electron'
 import { ImageDetails } from './models'
 import { SettingsService } from '../../services/settings'
-import { faPlay, faPause, faStepBackward, faStepForward, faTrashAlt, faFolder, faMinusCircle, faSync, faCog } from '@fortawesome/free-solid-svg-icons';
+import { IconsService } from '../../services/icons'
 
 @Component({
   selector: 'app-home',
@@ -19,17 +19,12 @@ export class HomeComponent implements OnInit {
   notFound = false
   recentlyClicked = false
   timer = null
-  faPlay = faPlay
-  faPause = faPause
-  faStepBackward = faStepBackward
-  faStepForward = faStepForward
-  faTrashAlt = faTrashAlt
-  faFolder = faFolder
-  faMinusCircle = faMinusCircle
-  faSync = faSync
-  faCog = faCog
 
-  constructor(private settingsService: SettingsService, readonly nz: NgZone) { }
+  constructor(
+    public settingsService: SettingsService,
+    public iconsService: IconsService,
+    readonly nz: NgZone
+  ) { }
 
   pickDirectory() {
     ipcRenderer.send('pickDirectory')
