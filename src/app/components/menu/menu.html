@@ -1,0 +1,45 @@
+<div class='menuOuter'>
+  <div class='menu' [class.wait]='messageService.message || settingsService.showSettings'>
+    <!-- <button (click)='pickDirectory()'>Open folder</button> -->
+    <div class='button' (click)='imageService.toggleSlideShow()' data-tooltip='Play/Pause'>
+      <fa-icon [icon]="imageService.slideshowStopped ? iconsService.faPlay : iconsService.faPause"></fa-icon>
+    </div>
+    <div class='button' (click)='previous()' data-tooltip='Previous image'>
+      <fa-icon [icon]="iconsService.faStepBackward"></fa-icon>
+    </div>
+    <div class='button' (click)='rendererSendService.next()' data-tooltip='Next image'>
+      <fa-icon [icon]="iconsService.faStepForward"></fa-icon>
+    </div>
+    <div class='button' (click)='deleteImage()' *ngIf='imageService.imageDetails' data-tooltip='Delete image'>
+      <fa-icon [icon]="iconsService.faTrashAlt"></fa-icon>
+    </div>
+    <div class='button delete' (click)='deleteDirectory()' *ngIf='imageService.imageDetails' data-tooltip='Delete directory'>
+      <fa-icon [icon]="iconsService.faTrashAlt"></fa-icon>
+      <span class='folderIconOutline'>
+        <fa-icon [icon]="iconsService.faFolder"></fa-icon>
+      </span>
+      <span class='folderIcon'>
+        <fa-icon [icon]="iconsService.faFolder"></fa-icon>
+      </span>
+    </div>
+    <div class='button' (click)='hideImage()' *ngIf='imageService.imageDetails' data-tooltip='Hide image'>
+      <fa-icon [icon]="iconsService.faMinusCircle"></fa-icon>
+    </div>
+    <div class='button delete' (click)='hideDirectory()' *ngIf='imageService.imageDetails' data-tooltip='Hide directory'>
+      <fa-icon [icon]="iconsService.faMinusCircle"></fa-icon>
+      <span class='folderIconOutline'>
+        <fa-icon [icon]="iconsService.faFolder"></fa-icon>
+      </span>
+      <span class='folderIcon'>
+        <fa-icon [icon]="iconsService.faFolder"></fa-icon>
+      </span>
+    </div>
+    <div class='button' (click)='rendererSendService.scan()' data-tooltip='Scan'>
+      <fa-icon [icon]="iconsService.faSync"></fa-icon>
+    </div>
+    <div class='button' (click)='settingsService.toggleSettings()' data-tooltip='Settings'>
+      <fa-icon [icon]="iconsService.faCog"></fa-icon>
+    </div>
+    <span [hidden]='!messageService.message'>{{messageService.message}}</span>
+  </div>
+</div>

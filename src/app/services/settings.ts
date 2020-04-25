@@ -1,18 +1,19 @@
 import { Injectable } from '@angular/core'
-import { ipcRenderer } from 'electron'
+import { ImageService } from './image';
 
 @Injectable()
 export class SettingsService {
-  stopped = true;
+  settings: any
   showSettings = false;
+  hiddenList = []
 
-  toggleSettings() {
+  constructor(private imageService: ImageService) { }
+
+  public toggleSettings() {
     this.showSettings = !this.showSettings
 
     if (this.showSettings) {
-      this.stopped = true
-      ipcRenderer.send('stopShow')
-      ipcRenderer.send('getHiddenList')
+      this.imageService.stopSlideShow()
     }
   }
 }

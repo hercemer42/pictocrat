@@ -1,0 +1,84 @@
+@import '../../shared/scss/styles.scss';
+
+.menuOuter {
+  position: absolute;
+  min-height: 20px;
+  width: 100%;
+  top: 0;
+  z-index: 1;
+  user-select: none;
+
+  .menu {
+    background: $menuBackground;
+    padding: 10px 0px;
+    vertical-align: middle;
+    
+    &:not(.wait) {
+      opacity: 0;
+    }
+
+    [data-tooltip]:before {            
+        position : absolute;
+        top: 120%;
+        background: white;
+        color: $menuBackground;
+        padding: 2px 5px;
+        outline: black solid 1px;
+        font-size: 1rem;
+        content : attr(data-tooltip);
+        opacity : 0;
+        white-space: nowrap;
+    }
+
+    [data-tooltip]:hover:before {        
+        opacity : 1;
+    }
+
+    .button {
+      display: inline;
+      padding: 0px 15px;
+      color: $menuColor;
+      font-size: 2rem;
+      position: relative;
+      cursor: pointer;
+
+      .folderIcon {
+        font-size: 1.4rem;
+        position: absolute;
+        left: 45%;
+        top: 45%;
+        z-index: 1;
+      }
+
+      .folderIconOutline {
+        font-size: 1.6rem;
+        color: $menuBackground;
+        position: absolute;
+        left: 43%;
+        top: 39%;
+        z-index: 1;
+      }
+    }
+
+    >span {
+      display: inline;
+      color: $menuColor;
+    }
+  }
+
+  svg {
+    display: hidden;
+  }
+
+  path{
+    fill: red !important;
+    stroke: black;
+    stroke-width: 30;
+  }
+
+  &:hover .menu {
+    opacity: 1;
+    transition: opacity .25s ease-in-out;
+  }
+}
+
