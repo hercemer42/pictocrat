@@ -7,13 +7,13 @@ import { FormsModule } from '@angular/forms'
 import { HttpClientModule } from '@angular/common/http';
 
 import { AppComponent } from './app.component'
-import { HomeComponent } from './components/home/home.component'
-import { SettingsComponent } from './components/settings/settings.component'
+import { HomeComponent } from './components/home/home'
+import { SettingsComponent } from './components/settings/settings'
 
 import { AppRoutingModule } from './app-routing.module'
 
 import { ElectronService } from './providers/electron.service'
-import { UiService } from './services/ui.service';
+import { SettingsService } from './services/settings';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'
 
 @NgModule({
@@ -29,7 +29,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'
     AppRoutingModule,
     FontAwesomeModule
   ],
-  providers: [ElectronService, UiService],
+  providers: [ElectronService, SettingsService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

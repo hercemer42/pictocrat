@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core'
 import { ipcRenderer } from 'electron'
 
 @Injectable()
-export class UiService {
+export class SettingsService {
   stopped = true;
   showSettings = false;
 

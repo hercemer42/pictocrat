@@ -1,13 +1,13 @@
 import { Component, OnInit, NgZone } from '@angular/core'
 import { ipcRenderer } from 'electron'
 import { ImageDetails } from './models'
-import { UiService } from '../../services/ui.service'
+import { SettingsService } from '../../services/settings'
 import { faPlay, faPause, faStepBackward, faStepForward, faTrashAlt, faFolder, faMinusCircle, faSync, faCog } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+  templateUrl: './home.html',
+  styleUrls: ['./home.scss']
 })
 
 export class HomeComponent implements OnInit {
@@ -29,8 +29,7 @@ export class HomeComponent implements OnInit {
   faSync = faSync
   faCog = faCog
 
-  constructor(private uiService: UiService, readonly nz: NgZone
-) { }
+  constructor(private settingsService: SettingsService, readonly nz: NgZone) { }
 
   pickDirectory() {
     ipcRenderer.send('pickDirectory')
@@ -82,8 +81,8 @@ export class HomeComponent implements OnInit {
     this.recentlyClicked = true
     clearTimeout(this.timer)
     this.timer = setTimeout(() => { this.recentlyClicked = false }, 3000)
-    this.uiService.stopped = !this.uiService.stopped
-    this.uiService.stopped ? ipcRenderer.send('stopShow') : ipcRenderer.send('start')
+    this.settingsService.stopped = !this.settingsService.stopped
+    this.settingsService.stopped ? ipcRenderer.send('stopShow') : ipcRenderer.send('start')
   }
 
   showMessage(message) {
@@ -99,7 +98,7 @@ export class HomeComponent implements OnInit {
   }
 
   previous() {
-    this.uiService.stopped = true
+    this.settingsService.stopped = true
     ipcRenderer.send('previous')
   }
 
@@ -114,7 +113,7 @@ export class HomeComponent implements OnInit {
     ipcRenderer.on('newImage', (event, imageDetails) => {
       this.nz.run(() => {
         if (this.firstRun) {
-          this.uiService.stopped = this.firstRun = false
+          this.settingsService.stopped = this.firstRun = false
         }
 
         this.imageDetails = imageDetails
@@ -128,14 +127,14 @@ export class HomeComponent implements OnInit {
     ipcRenderer.on('deleted', (event, message) => {
       this.nz.run(() => {
         this.showMessage(message)
-        this.uiService.stopped ? this.imageDetails = null : ipcRenderer.send('start')
+        this.settingsService.stopped ? this.imageDetails = null : ipcRenderer.send('start')
       })
     })
 
     ipcRenderer.on('hidden', (event, message) => {
       this.nz.run(() => {
         this.showMessage(message)
-        this.uiService.stopped ? this.imageDetails = null : ipcRenderer.send('start')
+        this.settingsService.stopped ? this.imageDetails = null : ipcRenderer.send('start')
       })
     })
 

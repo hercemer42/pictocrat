@@ -1,5 +1,5 @@
 import { Component } from '@angular/core'
-import { UiService } from '../../services/ui.service'
+import { SettingsService } from '../../services/settings'
 
 @Component({
   selector: 'settings-component',
@@ -8,5 +8,5 @@ import { UiService } from '../../services/ui.service'
 })
 
 export class SettingsComponent {
-  constructor(private uiService: UiService) { }
+  constructor(private settingsService: SettingsService) { }
 }

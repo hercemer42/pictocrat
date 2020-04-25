@@ -1,8 +1,8 @@
 <div class='menuOuter'>
-  <div class='menu' [class.wait]='message || uiService.showSettings'>
+  <div class='menu' [class.wait]='message || settingsService.showSettings'>
     <!-- <button (click)='pickDirectory()'>Open folder</button> -->
     <div class='button' (click)='toggleSlideShow()' data-tooltip='Play/Pause'>
-      <fa-icon [icon]="uiService.stopped ? faPlay : faPause"></fa-icon>
+      <fa-icon [icon]="settingsService.stopped ? faPlay : faPause"></fa-icon>
     </div>
     <div class='button' (click)='previous()' data-tooltip='Previous image'>
       <fa-icon [icon]="faStepBackward"></fa-icon>
@@ -37,15 +37,15 @@
     <div class='button' (click)='scan()' data-tooltip='Scan'>
       <fa-icon [icon]="faSync"></fa-icon>
     </div>
-    <div class='button' (click)='uiService.toggleSettings()' data-tooltip='Settings'>
+    <div class='button' (click)='settingsService.toggleSettings()' data-tooltip='Settings'>
       <fa-icon [icon]="faCog"></fa-icon>
     </div>
     <span [hidden]='!message'>{{message}}</span>
   </div>
 </div>
-<settings-component *ngIf='uiService.showSettings'></settings-component>
+<settings-component *ngIf='settingsService.showSettings'></settings-component>
 <div class='container' (click)='toggleSlideShow()'>
-  <div class='playPause' [class.recentlyClicked]='recentlyClicked'><fa-icon [icon]="uiService.stopped ? faPause : faPlay"></fa-icon></div>
+  <div class='playPause' [class.recentlyClicked]='recentlyClicked'><fa-icon [icon]="settingsService.stopped ? faPause : faPlay"></fa-icon></div>
   <img
     *ngIf='imageDetails && settings'
     [src]='"http://localhost:" + settings.expressJsPort + "/" + imageDetails.relativeDirectory + "/" + imageDetails.imageName'
