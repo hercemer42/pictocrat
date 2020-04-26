@@ -5,7 +5,7 @@ const fileService = require('./lib/services/files')
 const idleService = require('./lib/services/idle')
 require('./lib/services/browser-events')
 const config = require('./lib/config')
-const settings = require('electron-settings')
+const settings = require('./lib/services/settings')
 const server = require('./lib/services/server')
 
 let win: BrowserWindow = null;
@@ -62,14 +62,8 @@ function scanPeriodically() {
   }, 30 * 60 * 1000)
 }
 
-function initializeSettings(settings) {
-  settings.set('expressJsPort', config.expressJsPort)
-
-  for (const property in config.defaults) {
-    if (!settings.get(property)) {
-      settings.set(property, config.defaults[property])
-    }
-  }
+function initializeSettings() {
+  settings.set(config.defaults)
 }
 
 try {
@@ -96,17 +90,18 @@ try {
     }
   });
 
-  initializeSettings(settings)
-  idleService.startTimer(win)
+  app.on('ready', () => {
+    initializeSettings()
+    idleService.startTimer(win)
 
-  let pictureDirectory = settings.get('pictureDirectory')
+    let pictureDirectory = settings.get('pictureDirectory')
 
-  if (pictureDirectory) {
-    fileService.scan()
-    server.startStaticFileServer(pictureDirectory, config.expressJsPort)
-    scanPeriodically()
-  }
-
+    if (pictureDirectory) {
+      fileService.scan()
+      server.startStaticFileServer(pictureDirectory, config.defaults.expressJsPort)
+      scanPeriodically()
+    }
+  })
 } catch (e) {
   // Catch Error
   // throw e;

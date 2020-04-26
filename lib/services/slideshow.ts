@@ -1,7 +1,7 @@
-const Rx = require('rxjs/Rx')
+import * as Rx from 'rxjs/Rx'
 const db = require('../services/database')
 const config = require('../config')
-const electronSettings = require('electron-settings')
+const settings = require('./settings')
 let subscription
 const imageHistory = { images: [], position: 0 }
 
@@ -78,7 +78,6 @@ function nextRandomImage(event) {
     }
 
     if (count === 0) {
-
       db.update({}, { $set: { shown: false } }, { multi: true }, (() => {
         db.count({ shown: false, hidden: false }, function (err2, count2) {
           if (err2) {
@@ -99,14 +98,13 @@ function nextRandomImage(event) {
     }
 
     const skipCount = Math.floor(Math.random() * count)
-
     db.find({ shown: false, hidden: false }).skip(skipCount).limit(1).exec((err2, result) => {
       const imageDetails = result[0]
 
       if (!err2) {
+        console.log('imageDetails', imageDetails)
         event.sender.send('newImage', imageDetails)
         updateHistory(imageDetails)
-        console.log(imageDetails);
         db.update( { _id: imageDetails._id}, { $set: { shown: true } })
       }
     })
@@ -114,7 +112,7 @@ function nextRandomImage(event) {
 }
 
 async function start(event) {
-  let pictureDirectory = electronSettings.get('pictureDirectory')
+  let pictureDirectory = settings.get('pictureDirectory')
 
   if (pictureDirectory) {
 
@@ -122,7 +120,7 @@ async function start(event) {
       if (count) {
         nextRandomImage(event)
 
-        subscription = Rx.Observable.of(0).delay(electronSettings.get('interval')).repeat().subscribe(() => {
+        subscription = Rx.Observable.of(0).delay(settings.get('interval')).repeat().subscribe(() => {
           nextRandomImage(event)
         })
       }

@@ -1,11 +1,11 @@
 import * as fs from 'fs'
 import { dialog } from 'electron'
 const rimraf = require('rimraf')
-const settings = require('electron-settings')
 const config = require('../config')
 const slideShow = require('../services/slideshow')
 const db = require('../services/database')
 const server = require('../services/server')
+const settings = require('./settings')
 
 function readDirectory(directory, entries = []) {
   let rootDirectory = settings.get('pictureDirectory')
@@ -187,7 +187,7 @@ function toggleHideDirectory(event, directory) {
   db.update( { directory: directory.directoryName }, { $set: { hidden: directory.hidden } })
 }
 
-function pickDirectory(event) {
+async function pickDirectory(event) {
   const dir = dialog.showOpenDialogSync({ properties: ['openDirectory'] })
   if (!dir) {
     return
@@ -195,12 +195,12 @@ function pickDirectory(event) {
 
   slideShow.stopShow()
 
-  settings.set('pictureDirectory', dir[0])
-  server.startStaticFileServer(dir[0], config.expressJsPort)
+  settings.set({ pictureDirectory: dir[0] })
+  await server.startStaticFileServer(dir[0], config.defaults.expressJsPort)
 
   db.remove({}, { multi: true }, function () {
     db.insert(readDirectory(dir[0]), ((err) => {
-      event.sender.send('sendSettings', settings.getAll())
+      event.sender.send('sendSettings', settings.get())
       slideShow.start(event)
     }))
   })

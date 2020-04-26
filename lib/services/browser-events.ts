@@ -1,14 +1,14 @@
 import { ipcMain  } from 'electron'
-const settings = require('electron-settings')
 const fileService = require('./files')
 const slideShow = require('../services/slideshow')
+const settings = require('./settings')
 
 ipcMain.on('start', (event, arg) => {
   slideShow.start(event)
 })
 
 ipcMain.on('getSettings', (event, arg) => {
-  event.sender.send('sendSettings', settings.getAll())
+  event.sender.send('sendSettings', settings.get())
 })
 
 ipcMain.on('stopShow', (event, arg) => {
