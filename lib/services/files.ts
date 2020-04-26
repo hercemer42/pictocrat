@@ -179,7 +179,7 @@ function hideDirectory(event, imageDetails) {
   }))
 }
 
-function toggleHide(event, imageDetails) {
+function toggleHideFile(event, imageDetails) {
   db.update( { _id: imageDetails._id}, { $set: { hidden: imageDetails.hidden } })
 }
 
@@ -214,6 +214,6 @@ module.exports = {
   hideImage: hideImage,
   hideDirectory: hideDirectory,
   getHiddenList: getHiddenList,
-  toggleHide: toggleHide,
+  toggleHideFile: toggleHideFile,
   toggleHideDirectory: toggleHideDirectory
 }

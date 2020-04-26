@@ -17,8 +17,8 @@ export class SettingsComponent {
   ) { }
 
   // @TODO why is this here?
-  toggleHide(imageDetails) {
-    this.rendererService.toggleHide(imageDetails)
+  toggleHideFile(imageDetails) {
+    this.rendererService.toggleHideFile(imageDetails)
   }
 
   // @TODO why is this here?

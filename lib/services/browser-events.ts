@@ -51,8 +51,8 @@ ipcMain.on('getHiddenList', (event, arg) => {
   fileService.getHiddenList(event)
 })
 
-ipcMain.on('toggleHide', (event, imageDetails) => {
-  fileService.toggleHide(event, imageDetails)
+ipcMain.on('toggleHideFile', (event, imageDetails) => {
+  fileService.toggleHideFile(event, imageDetails)
 })
 
 ipcMain.on('toggleHideDirectory', (event, directory) => {

@@ -16,7 +16,7 @@
     <input type='checkbox' [(ngModel)]='directory.hidden' (change)='toggleHideDirectory(directory)'>
     <span>{{directory.directoryName}}</span>
     <div *ngFor='let image of directory.images'>
-      <input type='checkbox' [(ngModel)]='image.hidden' (change)='toggleHide(image)'>
+      <input type='checkbox' [(ngModel)]='image.hidden' (change)='toggleHideFile(image)'>
       <span>{{image.directory + '/' + image.imageName}}</span>
     </div>
   </div>
