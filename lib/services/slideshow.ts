@@ -112,6 +112,8 @@ function nextRandomImage(event) {
 }
 
 async function start(event) {
+  // stop the show if it's already running to avoid running multiple instances concurrently
+  stopShow()
   let pictureDirectory = settings.get('pictureDirectory')
 
   if (pictureDirectory) {
