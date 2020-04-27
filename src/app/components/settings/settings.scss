@@ -50,15 +50,24 @@
       padding: 0px;
 
       li {
+        cursor: pointer;
         height: 30px;
+
+        &.selected {
+          color: $highlightText;
+        }
       }
     }
   }
 
   #settings-right {
-    padding: 10px;
+    padding: 0px 20px 20px 20px;
     flex: 2;
     background: rgb(19,19,19);
     background: linear-gradient(180deg, rgba(19,19,19,1) 35%, rgba(45,45,45,1) 100%);
+
+    .hideDir {
+      color: $highlightText;
+    }
   }
 }

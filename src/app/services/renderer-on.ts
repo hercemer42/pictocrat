@@ -51,16 +51,7 @@ export class RendererOnService {
 
     ipcRenderer.on('sendHiddenList', (event, hiddenList) => {
       this.nz.run(() => {
-        const directories = {}
-
-        hiddenList.forEach(e => {
-          const dir = directories[e.directory]
-          dir ? dir.push(e) : directories[e.directory] = [e]
-        })
-
-        this.settingsService.hiddenList = Object.keys(directories).map(e => {
-          return { directoryName: e, images: directories[e], hidden: true }
-        })
+        this.settingsService.sortHiddenList(hiddenList)
       })
     })
   }

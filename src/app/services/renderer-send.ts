@@ -30,7 +30,7 @@ export class RendererSendService {
   }
 
   public toggleHideFile(imageDetails) {
-    ipcRenderer.send('toggleHide', imageDetails)
+    ipcRenderer.send('toggleHideFile', imageDetails)
   }
 
   public toggleHideDirectory(directoryDetails) {

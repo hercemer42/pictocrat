@@ -6,18 +6,23 @@
   <div id ='settings-main'>
     <div id='settings-left'>
       <ul>
-        <li>General</li>
-        <li>Unhide</li>
+        <li [ngClass]="{'selected': showMenu === 'general'}" (click)="showMenu = 'general'">General</li>
+        <li [ngClass]="{'selected': showMenu === 'unhide'}" (click)="showMenu = 'unhide'">Unhide</li>
       </ul>
     </div>
-    <div id='settings-right'>settings right</div>
-  </div>
-  <div *ngFor='let directory of hiddenList'>
-    <input type='checkbox' [(ngModel)]='directory.hidden' (change)='toggleHideDirectory(directory)'>
-    <span>{{directory.directoryName}}</span>
-    <div *ngFor='let image of directory.images'>
-      <input type='checkbox' [(ngModel)]='image.hidden' (change)='toggleHideFile(image)'>
-      <span>{{image.directory + '/' + image.imageName}}</span>
+    <div id='settings-right'>
+      <div [hidden]="showMenu != 'general'"><h3>General settings</h3></div>
+      <div [hidden]="showMenu != 'unhide'">
+        <h3>Unhide</h3>
+        <div *ngFor='let directory of settingsService.hiddenList'>
+          <input type='checkbox' [(ngModel)]='directory.hidden' (change)='toggleHideDirectory(directory)'>
+          <span class='hideDir'>{{directory.directoryName}}</span>
+          <div *ngFor='let image of directory.images'>
+            <input type='checkbox' [(ngModel)]='image.hidden' (change)='toggleHideFile(image)'>
+            <span>{{image.directory + '/' + image.imageName}}</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

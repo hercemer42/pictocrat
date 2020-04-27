@@ -1,7 +1,6 @@
-import { Component } from '@angular/core'
+import { Component, OnInit } from '@angular/core'
 import { SettingsService } from '../../services/settings'
 import { RendererSendService } from '../../services/renderer-send'
-import { ImageService } from '../../services/image'
 
 @Component({
   selector: 'settings-component',
@@ -10,20 +9,29 @@ import { ImageService } from '../../services/image'
 })
 
 export class SettingsComponent {
+  public showMenu = 'general'
+
   constructor(
     public settingsService: SettingsService,
-    private rendererService: RendererSendService,
-    private imageService: ImageService
+    private rendererSendService: RendererSendService,
   ) { }
 
-  // @TODO why is this here?
-  toggleHideFile(imageDetails) {
-    this.rendererService.toggleHideFile(imageDetails)
+  ngOnInit() {
+    this.rendererSendService.getHiddenList()
   }
 
-  // @TODO why is this here?
+  /**
+   * @param imageDetails The image to hide/unhide
+   */
+  toggleHideFile(imageDetails) {
+    this.rendererSendService.toggleHideFile(imageDetails)
+  }
+
+  /**
+   * @param directory the directory to hide/unhide
+   */
   toggleHideDirectory(directory) {
     directory.images.forEach(e => e.hidden = directory.hidden)
-    this.rendererService.toggleHideDirectory(directory)
+    this.rendererSendService.toggleHideDirectory(directory)
   }
 }
