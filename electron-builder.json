@@ -32,9 +32,9 @@
       ]
     },
     "linux": {
-      "icon": "dist",
+      "icon": "dist/favicon.png",
       "target": [
         "AppImage"
       ]
     }
-  }
+}
