@@ -17,7 +17,7 @@ export class MenuComponent {
     public imageService: ImageService,
     public iconsService: IconsService,
     public messageService: MessageService,
-    private rendererSendService: RendererSendService
+    public rendererSendService: RendererSendService
   ) { }
 
   public deleteImage() {
