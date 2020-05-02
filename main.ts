@@ -56,10 +56,13 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
+/**
+ * Scans for file changes every 30 minutes
+ */
 function scanPeriodically() {
   setTimeout(() => {
     fileService.scan()
-  }, 30 * 60 * 1000)
+  }, settings.get('rescanDelayInMinutes') * 60 * 1000)
 }
 
 function initializeSettings() {

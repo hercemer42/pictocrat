@@ -54,6 +54,5 @@ export class SettingsService {
     this.hiddenList = hiddenList.concat(Object.keys(directories).map(d => directories[d]))
     // sort the hidden list
     this.hiddenList.sort((a, b) => a.fullName.localeCompare(b.fullName));
-    console.log('hiddenList', this.hiddenList)
   }
 }
