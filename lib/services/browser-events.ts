@@ -55,6 +55,10 @@ ipcMain.on('toggleHideFile', (event, imageDetails) => {
   fileService.toggleHideFile(event, imageDetails)
 })
 
-ipcMain.on('toggleHideDirectory', (event, directory) => {
-  fileService.toggleHideDirectory(event, directory)
+ipcMain.on('showDirectory', (event, directory) => {
+  fileService.showDirectory(event, directory)
+})
+
+ipcMain.on('reHideFiles', (event, ids) => {
+  fileService.reHideFiles(event, ids)
 })

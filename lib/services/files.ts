@@ -183,9 +183,12 @@ function toggleHideFile(event, imageDetails) {
   db.update( { _id: imageDetails._id}, { $set: { hidden: imageDetails.hidden } } )
 }
 
-function toggleHideDirectory(event, directory) {
-  console.log('directory', directory)
-  db.update( { directory: directory.directory }, { $set: { hidden: directory.hidden } }, { multi: true } )
+function showDirectory(event, directory) {
+  db.update( { directory: directory.directory }, { $set: { hidden: false } }, { multi: true } )
+}
+
+function reHideFiles(event, ids) {
+  db.update( { _id: { $in: ids}}, { $set: { hidden: true }}, { multi: true } )
 }
 
 async function pickDirectory(event) {
@@ -216,5 +219,6 @@ module.exports = {
   hideDirectory: hideDirectory,
   getHiddenList: getHiddenList,
   toggleHideFile: toggleHideFile,
-  toggleHideDirectory: toggleHideDirectory
+  showDirectory: showDirectory,
+  reHideFiles: reHideFiles
 }

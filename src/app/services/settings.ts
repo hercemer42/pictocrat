@@ -27,6 +27,7 @@ export class SettingsService {
    */
   public sortAndMapHiddenList(hiddenList) {
     const directories = {}
+    this.hiddenListMappedByDirectoryName = {}
 
     // create the reference map
     hiddenList.forEach(h => {

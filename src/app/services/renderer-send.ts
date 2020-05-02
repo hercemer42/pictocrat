@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core'
 import { ipcRenderer } from 'electron'
-import { ImageService } from './image'
 
 @Injectable()
 export class RendererSendService {
@@ -31,10 +30,16 @@ export class RendererSendService {
 
   public toggleHideFile(imageDetails) {
     ipcRenderer.send('toggleHideFile', imageDetails)
+
   }
 
-  public toggleHideDirectory(directoryDetails) {
-    ipcRenderer.send('toggleHideDirectory', directoryDetails)
+  public showDirectory(directoryDetails) {
+    ipcRenderer.send('showDirectory', directoryDetails)
+  }
+
+  // for when we want to re-check the directory within the settings/unhide dialog after having unchecked it
+  public reHideFiles(fileIds) {
+    ipcRenderer.send('reHideFiles', fileIds)
   }
 
   public stopShow() {
