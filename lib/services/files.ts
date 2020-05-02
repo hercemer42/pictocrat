@@ -32,7 +32,8 @@ function readDirectory(directory, entries = []) {
             directory: directory,
             relativeDirectory: directory.replace(rootDirectory, ''),
             shown: false,
-            hidden: false
+            hidden: false,
+            rotate: 0
           }
 
           entries.push(entry)
@@ -191,6 +192,10 @@ function reHideFiles(event, ids) {
   db.update( { _id: { $in: ids}}, { $set: { hidden: true }}, { multi: true } )
 }
 
+function updateDetails(event, imageDetails) {
+  db.update( { _id: imageDetails._id }, { $set: imageDetails } )
+}
+
 async function pickDirectory(event) {
   const dir = dialog.showOpenDialogSync({ properties: ['openDirectory'] })
   if (!dir) {
@@ -220,5 +225,6 @@ module.exports = {
   getHiddenList: getHiddenList,
   toggleHideFile: toggleHideFile,
   showDirectory: showDirectory,
-  reHideFiles: reHideFiles
+  reHideFiles: reHideFiles,
+  updateDetails: updateDetails
 }

@@ -17,13 +17,16 @@ export class RendererOnService {
 
   init() {
     ipcRenderer.on('newImage', (event, imageDetails) => {
+      this.imageService.imageDetails = imageDetails
+
       this.nz.run(() => {
+        // prevents css transform rotation from taking place until the new image is served
+        this.imageService.rendered = false
+
         if (this.firstRun) {
           this.firstRun = false
           this.imageService.slideshowStopped = false
         }
-
-        this.imageService.imageDetails = imageDetails
       })
     })
 
@@ -46,7 +49,9 @@ export class RendererOnService {
     })
 
     ipcRenderer.on('sendSettings', (event, settings) => {
-      this.nz.run(() => {this.settingsService.settings = settings})
+      this.nz.run(() => {
+        this.settingsService.settings = settings
+      })
     })
 
     ipcRenderer.on('sendHiddenList', (event, hiddenList) => {

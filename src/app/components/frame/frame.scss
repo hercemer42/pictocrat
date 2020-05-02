@@ -26,16 +26,31 @@ body {
     transition-duration: 0s;
   }
 
-  img, > div {
-    max-width: 100%;
-    width: auto;
-    max-height: 100%;
-    height: auto;
+  .imageHolder {
     position: relative;
     top: 50%;
     transform: translateY(-50%);
     display: block;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  img {
+    max-width: 100%;
+    width: auto;
+    max-height: 100%;
+    height: auto;
+
+    &.rotate90 {
+      transform: rotate(90deg) !important;
+    }
+
+    &.rotate180 {
+      transform: rotate(180deg) !important;
+    }
+
+    &.rotate270 {
+      transform: rotate(270deg) !important;
+    }
   }
 }

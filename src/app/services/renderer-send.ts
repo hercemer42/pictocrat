@@ -61,4 +61,8 @@ export class RendererSendService {
   public previous() {
     ipcRenderer.send('previous')
   }
+
+  public updateDetails(imageDetails) {
+    ipcRenderer.send('updateDetails', imageDetails) 
+  }
 }

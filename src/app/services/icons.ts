@@ -1,5 +1,17 @@
 import { Injectable } from '@angular/core'
-import { faPlay, faPause, faStepBackward, faStepForward, faTrashAlt, faFolder, faMinusCircle, faSync, faCog, faFile } from '@fortawesome/free-solid-svg-icons';
+import {
+  faPlay,
+  faPause,
+  faStepBackward,
+  faStepForward,
+  faTrashAlt,
+  faFolder,
+  faMinusCircle,
+  faSync,
+  faCog,
+  faFile,
+  faUndo
+} from '@fortawesome/free-solid-svg-icons';
 
 @Injectable()
 export class IconsService {
@@ -13,4 +25,5 @@ export class IconsService {
   faMinusCircle = faMinusCircle
   faSync = faSync
   faCog = faCog
+  faUndo = faUndo
 }

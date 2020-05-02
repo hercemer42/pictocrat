@@ -7,12 +7,12 @@ import { RendererOnService } from '../../services/renderer-on'
 import { RendererSendService } from '../../services/renderer-send'
 
 @Component({
-  selector: 'app-home',
-  templateUrl: './home.html',
-  styleUrls: ['./home.scss']
+  selector: 'app-frame',
+  templateUrl: './frame.html',
+  styleUrls: ['./frame.scss']
 })
 
-export class HomeComponent implements OnInit {
+export class FrameComponent implements OnInit {
   notFound = false
 
   constructor(

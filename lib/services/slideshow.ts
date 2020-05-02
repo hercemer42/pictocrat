@@ -29,7 +29,7 @@ function historyBrowse(event, direction) {
       return
     }
 
-    event.sender.send('newImage', image)
+    event.sender.send('newImage', imageDetails)
   })
 }
 

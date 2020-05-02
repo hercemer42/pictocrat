@@ -1,13 +1,13 @@
-<div class='menuOuter'>
+<div class='menuOuter' (mouseenter)="imageService.stopSlideShow()">
   <div class='menu' [class.wait]='messageService.message || settingsService.showSettings'>
     <!-- <button (click)='pickDirectory()'>Open folder</button> -->
     <div class='button' (click)='imageService.toggleSlideShow()' data-tooltip='Play/Pause'>
       <fa-icon [icon]="imageService.slideshowStopped ? iconsService.faPlay : iconsService.faPause"></fa-icon>
     </div>
-    <div class='button' (click)='previous()' data-tooltip='Previous image'>
+    <div class='button' (click)='imageService.previous()' data-tooltip='Previous image'>
       <fa-icon [icon]="iconsService.faStepBackward"></fa-icon>
     </div>
-    <div class='button' (click)='rendererSendService.next()' data-tooltip='Next image'>
+    <div class='button' (click)='imageService.next()' data-tooltip='Next image'>
       <fa-icon [icon]="iconsService.faStepForward"></fa-icon>
     </div>
     <div class='button' (click)='deleteImage()' *ngIf='imageService.imageDetails' data-tooltip='Delete image'>
@@ -39,6 +39,12 @@
     </div>
     <div class='button' (click)='settingsService.toggleSettings()' data-tooltip='Settings'>
       <fa-icon [icon]="iconsService.faCog"></fa-icon>
+    </div>
+    <div class='button' (click)='imageService.rotateLeft()' data-tooltip='Rotate left'>
+      <fa-icon [icon]="iconsService.faUndo"></fa-icon>
+    </div>
+    <div class='button' (click)='imageService.rotateRight()' data-tooltip='Rotate right'>
+      <fa-icon [icon]="iconsService.faUndo" flip="horizontal"></fa-icon>
     </div>
     <span [hidden]='!messageService.message'>{{messageService.message}}</span>
   </div>

@@ -62,3 +62,7 @@ ipcMain.on('showDirectory', (event, directory) => {
 ipcMain.on('reHideFiles', (event, ids) => {
   fileService.reHideFiles(event, ids)
 })
+
+ipcMain.on('updateDetails', (event, imageDetails) => {
+  fileService.updateDetails(event, imageDetails)
+})

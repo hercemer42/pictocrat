@@ -49,8 +49,4 @@ export class MenuComponent {
     }
   }
 
-  public previous() {
-    this.imageService.slideshowStopped = true
-    this.rendererSendService.previous()
-  }
 }

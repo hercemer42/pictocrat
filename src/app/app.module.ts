@@ -11,7 +11,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'
 
 // components
 import { AppComponent } from './app.component'
-import { HomeComponent } from './components/home/home'
+import { FrameComponent } from './components/frame/frame'
 import { SettingsComponent } from './components/settings/settings'
 import { MenuComponent } from './components/menu/menu'
 
@@ -27,7 +27,7 @@ import { MessageService } from './services/message'
 @NgModule({
   declarations: [
     AppComponent,
-    HomeComponent,
+    FrameComponent,
     SettingsComponent,
     MenuComponent
   ],

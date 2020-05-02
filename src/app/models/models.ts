@@ -4,4 +4,5 @@ export class ImageDetails {
   relativeDirectory: string
   shown: boolean
   hidden: boolean
+  rotate: number
 }
