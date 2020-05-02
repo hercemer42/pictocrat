@@ -31,9 +31,13 @@ module.exports = function (config) {
     customLaunchers: {
       AngularElectron: {
         base: 'Electron',
+        flags: [
+          '--remote-debugging-port=9222'
+        ],
         browserWindowOptions: {
           webPreferences: {
             nodeIntegration: true,
+            nodeIntegrationInSubFrames: true,
             allowRunningInsecureContent: true
           }
         }
