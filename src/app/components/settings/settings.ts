@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core'
 import { SettingsService } from '../../services/settings'
 import { RendererSendService } from '../../services/renderer-send'
+import { IconsService } from '../../services/icons'
 
 @Component({
   selector: 'settings-component',
@@ -13,6 +14,7 @@ export class SettingsComponent {
 
   constructor(
     public settingsService: SettingsService,
+    public iconsService: IconsService,
     private rendererSendService: RendererSendService,
   ) { }
 
@@ -21,17 +23,11 @@ export class SettingsComponent {
   }
 
   /**
-   * @param imageDetails The image to hide/unhide
+   * @param toHide The image or directory to hide/unhide
    */
-  toggleHideFile(imageDetails) {
-    this.rendererSendService.toggleHideFile(imageDetails)
-  }
-
-  /**
-   * @param directory the directory to hide/unhide
-   */
-  toggleHideDirectory(directory) {
-    directory.images.forEach(e => e.hidden = directory.hidden)
-    this.rendererSendService.toggleHideDirectory(directory)
+  toggleHide(toHide) {
+    toHide.type === 'directory' ?
+      this.rendererSendService.toggleHideDirectory(toHide) :
+      this.rendererSendService.toggleHideFile(toHide)
   }
 }

@@ -6,6 +6,7 @@ export class SettingsService {
   settings: any
   showSettings = false;
   hiddenList = []
+  hiddenListMappedByDirectoryName = {}
 
   constructor(private imageService: ImageService) { }
 
@@ -18,19 +19,40 @@ export class SettingsService {
   }
 
   /**
-   * Sort the list of hidden files by directory
-   * @param hiddenFiles the list of hidden files
+   * Creates a reference map of hidden files by directory name,
+   * adds the directories as elements to the array,
+   * then sorts the hidden files by directory name.
+   * 
+   * @param hiddenList the list of hidden files
    */
-  public sortHiddenList(hiddenList) {
+  public sortAndMapHiddenList(hiddenList) {
     const directories = {}
 
-    hiddenList.forEach(e => {
-      const dir = directories[e.directory]
-      dir ? dir.push(e) : directories[e.directory] = [e]
+    // create the reference map
+    hiddenList.forEach(h => {
+      h.fullName = h.directory + h.imageName
+
+      if (!this.hiddenListMappedByDirectoryName[h.relativeDirectory]) {
+        this.hiddenListMappedByDirectoryName[h.relativeDirectory] = []
+      }
+
+      if (!directories[h.directory]) {
+        directories[h.directory] = {
+          directory: h.directory,
+          relativeDirectory: h.relativeDirectory,
+          fullName: h.directory,
+          type: 'directory',
+          hidden: true
+        }
+      }
+
+      this.hiddenListMappedByDirectoryName[h.relativeDirectory].push(h)
     })
 
-    this.hiddenList = Object.keys(directories).map(e => {
-      return { directoryName: e, images: directories[e], hidden: true }
-    })
+    // add the directories
+    this.hiddenList = hiddenList.concat(Object.keys(directories).map(d => directories[d]))
+    // sort the hidden list
+    this.hiddenList.sort((a, b) => a.fullName.localeCompare(b.fullName));
+    console.log('hiddenList', this.hiddenList)
   }
 }

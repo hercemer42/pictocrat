@@ -171,7 +171,7 @@ function hideDirectory(event, imageDetails) {
     return
   }
 
-  db.update({ directory: imageDetails.directory }, { $set: { hidden: true } }, { multi: true }, ((images) => {
+  db.update({ directory: imageDetails.directory }, { $set: { hidden: true } }, { multi: true }, (images => {
     slideShow.history.images = slideShow.history.images.filter((e) => e.directory !== imageDetails.directory)
     slideShow.history.position = slideShow.history.images.length - 1
     event.sender.send('hidden', 'Directory hidden! You can unhide it from the settings/hidden menu.')
@@ -180,11 +180,12 @@ function hideDirectory(event, imageDetails) {
 }
 
 function toggleHideFile(event, imageDetails) {
-  db.update( { _id: imageDetails._id}, { $set: { hidden: imageDetails.hidden } })
+  db.update( { _id: imageDetails._id}, { $set: { hidden: imageDetails.hidden } } )
 }
 
 function toggleHideDirectory(event, directory) {
-  db.update( { directory: directory.directoryName }, { $set: { hidden: directory.hidden } })
+  console.log('directory', directory)
+  db.update( { directory: directory.directory }, { $set: { hidden: directory.hidden } }, { multi: true } )
 }
 
 async function pickDirectory(event) {

@@ -34,10 +34,7 @@ export class RendererSendService {
   }
 
   public toggleHideDirectory(directoryDetails) {
-    ipcRenderer.send('toggleHideDirectory', {
-      directoryName: directoryDetails.directoryName,
-      hidden: directoryDetails.hidden
-    })
+    ipcRenderer.send('toggleHideDirectory', directoryDetails)
   }
 
   public stopShow() {

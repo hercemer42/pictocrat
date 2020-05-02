@@ -51,7 +51,7 @@ export class RendererOnService {
 
     ipcRenderer.on('sendHiddenList', (event, hiddenList) => {
       this.nz.run(() => {
-        this.settingsService.sortHiddenList(hiddenList)
+        this.settingsService.sortAndMapHiddenList(hiddenList)
       })
     })
   }

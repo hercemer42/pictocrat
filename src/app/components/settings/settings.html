@@ -14,13 +14,11 @@
       <div [hidden]="showMenu != 'general'"><h3>General settings</h3></div>
       <div [hidden]="showMenu != 'unhide'">
         <h3>Unhide</h3>
-        <div *ngFor='let directory of settingsService.hiddenList'>
-          <input type='checkbox' [(ngModel)]='directory.hidden' (change)='toggleHideDirectory(directory)'>
-          <span class='hideDir'>{{directory.directoryName}}</span>
-          <div *ngFor='let image of directory.images'>
-            <input type='checkbox' [(ngModel)]='image.hidden' (change)='toggleHideFile(image)'>
-            <span>{{image.directory + '/' + image.imageName}}</span>
-          </div>
+        <div *ngFor='let item of settingsService.hiddenList'>
+          <input type='checkbox' [(ngModel)]='item.hidden' (change)='toggleHide(item)'>
+          <fa-icon [hidden]='item.type != "directory"' [icon]="iconsService.faFolder"></fa-icon>
+          <fa-icon [hidden]='item.type === "directory"' [icon]="iconsService.faFile"></fa-icon>
+          <span [class.hideDir]='!item.imageName'> {{item.fullName}}</span>
         </div>
       </div>
     </div>
