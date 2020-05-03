@@ -13,7 +13,7 @@ function stopShow() {
   subscription.unsubscribe()
 }
 
-function historyBrowse(event, direction) {
+function historyBrowse(event) {
   const image = imageHistory.images[imageHistory.position]
 
   if (!image) {
@@ -46,7 +46,7 @@ function nextInHistory(event) {
   }
 
   ++imageHistory.position
-  historyBrowse(event, 'next')
+  historyBrowse(event)
 }
 
 function previousInHistory(event) {
@@ -58,7 +58,7 @@ function previousInHistory(event) {
   }
 
   --imageHistory.position
-  historyBrowse(event, 'previous')
+  historyBrowse(event)
 }
 
 function updateHistory(imageDetails) {
