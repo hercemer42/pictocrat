@@ -1,15 +1,13 @@
 const chai = require('chai')
 const chaiHttp = require('chai-http')
-const assert = require('assert')
 const server = require('../lib/services/server')
 const config = require('../lib/config')
-const basePath = process.env.PWD
+const pictureDirectory = process.env.PWD + '/test/assets/images'
 
 chai.use(chaiHttp)
 chai.should()
 
 describe('Array', function() {
-  const pictureDirectory = basePath + '/test/assets/images'
 
   before(() => {
     return server.startStaticFileServer(pictureDirectory, config.defaults.expressJsPort)
