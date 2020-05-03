@@ -1,3 +1,6 @@
+/**
+ * Picture file & directory manipulation and retrieval service
+ */
 import * as fs from 'fs'
 import { dialog } from 'electron'
 const rimraf = require('rimraf')
