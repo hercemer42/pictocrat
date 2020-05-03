@@ -57,7 +57,7 @@ function createWindow(): BrowserWindow {
 }
 
 /**
- * Scans for file changes every 30 minutes
+ * Scans for file changes periodically
  */
 function scanPeriodically() {
   setTimeout(() => {

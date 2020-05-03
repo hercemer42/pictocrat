@@ -7,5 +7,6 @@ async function startStaticFileServer(path, port) {
 }
 
 module.exports = {
-  startStaticFileServer: startStaticFileServer
+  startStaticFileServer: startStaticFileServer,
+  app: app
 }
