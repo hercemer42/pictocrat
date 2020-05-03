@@ -1,6 +1,6 @@
 import { app } from 'electron'
 const fs = require('fs');
-const appPath = app.getPath('userData') + '/settings.json'
+const settingsPath = app.getPath('userData') + '/settings.json'
 
 /**
  * @param {object} settings 
@@ -8,22 +8,22 @@ const appPath = app.getPath('userData') + '/settings.json'
 function set(settings) {
   let existingSettings = {}
 
-  if (fs.existsSync(appPath)) {
+  if (fs.existsSync(settingsPath)) {
     existingSettings = get()
   }
 
-  fs.writeFileSync(appPath, JSON.stringify({...existingSettings, ...settings}), { encoding: 'utf8' })
+  fs.writeFileSync(settingsPath, JSON.stringify({...existingSettings, ...settings}), { encoding: 'utf8' })
 }
 
 /**
  * @param {string} settingName 
  */
 function get(settingName = null) {
-  if (fs.existsSync(appPath)) {
+  if (fs.existsSync(settingsPath)) {
     let settings = {}
 
     try {
-      settings = JSON.parse(fs.readFileSync(appPath, "utf8"))
+      settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"))
     } catch {
       return 
     }
