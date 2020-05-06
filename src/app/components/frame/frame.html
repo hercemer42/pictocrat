@@ -13,7 +13,7 @@
       [class.rotate270]='imageService.imageDetails.rotate == 3 && imageService.rendered'
     />
   </div>
-  <div *ngIf='settingsService.settings && !settingsService.settings.pictureDirectory'>Pick your picture folder to get started.
+  <div class='noFolder' *ngIf='settingsService.settings && !settingsService.settings.pictureDirectory'>Pick your picture folder to get started.
     <button (click)='rendererSendService.pickDirectory()'>Open Folder</button>
   </div>
   <div *ngIf='notFound'>File not found.
