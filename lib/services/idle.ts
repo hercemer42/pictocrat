@@ -1,20 +1,25 @@
-const systemIdleTime = require('desktop-idle')
-const settings = require('./settings')
+class IdleService {
+  private systemIdleTime
+  private settingsService
 
-function startTimer(win) {
-  if (!settings.get('maximizeOnIdle')) {
-    return
+  constructor(systemIdleTime, settingsService) {
+    this.systemIdleTime = systemIdleTime
+    this.settingsService = settingsService
   }
 
-  setTimeout(() => {
-    if (systemIdleTime.getIdleTime() > settings.get('idleTimeout')) {
-      win.show()
+  startTimer(win) {
+    if (!this.settingsService.get('maximizeOnIdle')) {
+      return
     }
 
-    startTimer(win)
-  }, 5000)
+    setTimeout(() => {
+      if (this.systemIdleTime > this.settingsService.get('idleTimeout')) {
+        win.show()
+      }
+
+      this.startTimer(win)
+    }, 5000)
+  }
 }
 
-module.exports = {
-  startTimer: startTimer
-}
+export { IdleService }

@@ -1,40 +1,44 @@
-import { app } from 'electron'
-const fs = require('fs');
-const settingsPath = app.getPath('userData') + '/settings.json'
+class SettingsService {
+  private fs
+  private settingsPath
 
-/**
- * @param {object} settings 
- */
-function set(settings) {
-  let existingSettings = {}
-
-  if (fs.existsSync(settingsPath)) {
-    existingSettings = get()
+  constructor(fs, settingsPath, config) {
+    this.fs = fs
+    this.settingsPath = settingsPath
+    this.set(config.defaults)
   }
+  /**
+   * @param {object} settings 
+   */
+  set(settings) {
+    let existingSettings = {}
 
-  fs.writeFileSync(settingsPath, JSON.stringify({...existingSettings, ...settings}), { encoding: 'utf8' })
-}
-
-/**
- * @param {string} settingName 
- */
-function get(settingName = null) {
-  if (fs.existsSync(settingsPath)) {
-    let settings = {}
-
-    try {
-      settings = JSON.parse(fs.readFileSync(settingsPath, "utf8"))
-    } catch {
-      return 
+    if (this.fs.existsSync(this.settingsPath)) {
+      existingSettings = this.get()
     }
 
-    return settingName ? settings[settingName] : settings
+    this.fs.writeFileSync(this.settingsPath, JSON.stringify({...existingSettings, ...settings}), { encoding: 'utf8' })
   }
 
-  return
+  /**
+   * @param {string} settingName 
+   */
+  get(settingName = null) {
+    if (this.fs.existsSync(this.settingsPath)) {
+      let settings = {}
+
+      try {
+        settings = JSON.parse(this.fs.readFileSync(this.settingsPath, "utf8"))
+        console.log('here', this.settingsPath, settings)
+      } catch {
+        return 
+      }
+
+      return settingName ? settings[settingName] : settings
+    }
+
+    return
+  }
 }
 
-module.exports = {
-  set: set,
-  get: get
-}
+export { SettingsService }
