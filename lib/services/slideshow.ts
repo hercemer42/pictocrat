@@ -80,6 +80,14 @@ class SlideShow {
     this.imageHistory.position = this.imageHistory.images.length - 1
   }
 
+  deleteFromHistory(imageDetails) {
+    const inHistory = this.imageHistory.images.findIndex((e) => e._id === imageDetails._id)
+
+    if (~inHistory) {
+      this.imageHistory.images.splice(inHistory, 1)
+    }
+  }
+
   nextRandomImage(event) {
     const self = this
     this.db.count({ shown: false, hidden: false }, function (err, count) {
@@ -112,7 +120,6 @@ class SlideShow {
         const imageDetails = result[0]
 
         if (!err2) {
-          console.log('imageDetails', imageDetails)
           event.sender.send('newImage', imageDetails)
           self.updateHistory(imageDetails)
           self.db.update( { _id: imageDetails._id}, { $set: { shown: true } })

@@ -29,7 +29,6 @@ class SettingsService {
 
       try {
         settings = JSON.parse(this.fs.readFileSync(this.settingsPath, "utf8"))
-        console.log('here', this.settingsPath, settings)
       } catch {
         return 
       }
