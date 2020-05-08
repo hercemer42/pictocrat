@@ -27,12 +27,9 @@ body {
   }
 
   .imageHolder {
-    position: relative;
-    top: 50%;
-    transform: translateY(-50%);
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
+    height: 100%;
+    margin: 0;
+    padding: 0;
   }
 
   .noFolder {
@@ -40,21 +37,11 @@ body {
   }
 
   img {
-    max-width: 100%;
-    width: auto;
+    padding: 0;
+    display: block;
+    margin: 0 auto;
     max-height: 100%;
-    height: auto;
-
-    &.rotate90 {
-      transform: rotate(90deg) !important;
-    }
-
-    &.rotate180 {
-      transform: rotate(180deg) !important;
-    }
-
-    &.rotate270 {
-      transform: rotate(270deg) !important;
-    }
+    max-width: 100%;
+    position: relative;
   }
 }

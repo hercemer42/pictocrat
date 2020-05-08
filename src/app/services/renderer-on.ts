@@ -20,9 +20,6 @@ export class RendererOnService {
       this.imageService.imageDetails = imageDetails
 
       this.nz.run(() => {
-        // prevents css transform rotation from taking place until the new image is served
-        this.imageService.rendered = false
-
         if (this.firstRun) {
           this.firstRun = false
           this.imageService.slideshowStopped = false

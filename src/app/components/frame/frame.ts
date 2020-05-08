@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { Component, OnInit, ViewChild, ElementRef, Renderer2 } from '@angular/core'
 import { ipcRenderer } from 'electron'
 import { SettingsService } from '../../services/settings'
 import { IconsService } from '../../services/icons'
@@ -14,15 +14,16 @@ import { RendererSendService } from '../../services/renderer-send'
 
 export class FrameComponent implements OnInit {
   notFound = false
+  @ViewChild('image') image: ElementRef;
 
   constructor(
     public settingsService: SettingsService,
     public iconsService: IconsService,
     public imageService: ImageService,
     public rendererSendService: RendererSendService,
-    private rendererOnService: RendererOnService
+    private rendererOnService: RendererOnService,
+    private renderer: Renderer2
   ) { }
-
   async start() {
     await ipcRenderer.send('getSettings')
     await ipcRenderer.send('start')
@@ -31,5 +32,9 @@ export class FrameComponent implements OnInit {
   ngOnInit() {
     this.start()
     this.rendererOnService.init()
+  }
+
+  onImageLoad() {
+    this.imageService.rotateImage(this.image.nativeElement, this.renderer)
   }
 }
