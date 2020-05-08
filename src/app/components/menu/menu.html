@@ -40,10 +40,10 @@
     <div class='button' (click)='settingsService.toggleSettings()' data-tooltip='Settings'>
       <fa-icon [icon]="iconsService.faCog"></fa-icon>
     </div>
-    <div class='button' (click)='imageService.rotateLeft()' data-tooltip='Rotate left'>
+    <div class='button' (click)='imageService.setRotationLeft()' data-tooltip='Rotate left'>
       <fa-icon [icon]="iconsService.faUndo"></fa-icon>
     </div>
-    <div class='button' (click)='imageService.rotateRight()' data-tooltip='Rotate right'>
+    <div class='button' (click)='imageService.setRotationRight()' data-tooltip='Rotate right'>
       <fa-icon [icon]="iconsService.faUndo" flip="horizontal"></fa-icon>
     </div>
     <span [hidden]='!messageService.message'>{{messageService.message}}</span>

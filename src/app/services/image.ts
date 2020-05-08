@@ -1,16 +1,16 @@
 import { Injectable, NgZone, Renderer2 } from '@angular/core'
 import { ImageDetails } from '../models/models'
 import { RendererSendService } from './renderer-send'
-import { faWindowMinimize } from '@fortawesome/free-solid-svg-icons'
 
 @Injectable()
 export class ImageService {
-  imageDetails: ImageDetails
-  imageElement: HTMLImageElement
-  renderer: Renderer2
-  recentlyClicked = false
-  timer = null
-  slideshowStopped = true
+  public imageDetails: ImageDetails
+  public recentlyClicked = false
+  public slideshowStopped = true
+
+  private imageElement: HTMLImageElement
+  private renderer: Renderer2
+  private timer = null
 
   constructor(
     private rendererSendService: RendererSendService,
@@ -49,23 +49,24 @@ export class ImageService {
     this.rendererSendService.stopShow()
   }
 
-  public rotateLeft() {
+  /**
+   * Increment the image rotation property to the left
+   */
+  public setRotationLeft() {
     this.stopSlideShow()
 
     this.nz.run(() => {
-      if (!this.imageDetails.rotate) {
-        this.imageDetails.rotate = 3
-        return
-      }
-
-      this.imageDetails.rotate--
+      this.imageDetails.rotate = this.imageDetails.rotate ? this.imageDetails.rotate - 1 : 3 
       this.rotateImage(this.imageElement, this.renderer)
     })
 
     this.rendererSendService.updateDetails(this.imageDetails)
   }
 
-  public rotateRight() {
+  /**
+   * Increment the image rotation property to the right
+   */
+  public setRotationRight() {
     this.stopSlideShow()
 
     this.nz.run(() => {
@@ -86,62 +87,77 @@ export class ImageService {
     this.rendererSendService.updateDetails(this.imageDetails)
   }
 
-  /** 
-   * Rotates the image while fitting it to the available display,
+  /**
+   * apply the image rotation to the HTML element 
+   * @param { HTMLImageElement } element the image element
+   * @param { Renderer2 } renderer  
    */
-  rotateImage(element, renderer) {
+  public rotateImage(element, renderer) {
     this.imageElement = element
     this.renderer = renderer
     const rotation = this.imageDetails.rotate
     const imageRatio = element.naturalWidth/element.naturalHeight
-    const screenRatio = window.innerWidth/window.innerHeight
     this.resetPosition(element, renderer)
-    const wideImage = imageRatio > screenRatio
 
     switch(rotation) {
       case 1 :
-        element.width = window.innerHeight 
-        element.height = window.innerHeight/imageRatio
-        this.renderer.setStyle(element, 'transform-origin', 'top left')
-        this.renderer.setStyle(element, 'transform', 'rotate(90deg)')
-        let offset = element.width - (element.width - element.height)/2
-        this.renderer.setStyle(element, 'left', `${offset}px`)
+        this.rotatePerpendicular(element, 'right', imageRatio)
         break
       case 2 :
-        if (wideImage) {
-          element.width = window.innerWidth
-          element.height = element.width/imageRatio
-          this.renderer.setStyle(element, 'top', `${(window.innerHeight - element.height)/2}px`)
-        } else {
-          element.height = window.innerHeight 
-          element.width = window.innerHeight*imageRatio
-        }
-        this.renderer.setStyle(element, 'transform-origin', 'center center')
-        this.renderer.setStyle(element, 'transform', 'rotate(180deg)')
-        break
+        this.rotateParallel(element, 'bottom', imageRatio)
+       break
       case 3 :
-        element.width = window.innerHeight 
-        element.height = window.innerHeight/imageRatio
-        this.renderer.setStyle(element, 'transform-origin', 'top right')
-        this.renderer.setStyle(element, 'transform', 'rotate(270deg)')
-        offset = element.width - (element.width - element.height)/2
-        this.renderer.setStyle(element, 'right', `${offset}px`)
+        this.rotatePerpendicular(element, 'left', imageRatio)
         break
       default :
-        if (wideImage) {
-          element.width = window.innerWidth
-          element.height = element.width/imageRatio
-          this.renderer.setStyle(element, 'top', `${(window.innerHeight - element.height)/2}px`)
-        } else {
-          element.height = window.innerHeight 
-          element.width = window.innerHeight*imageRatio
-        }
-        this.renderer.setStyle(element, 'transform-origin', 'center center')
-        this.renderer.setStyle(element, 'transform', 'rotate(0deg)')
+        this.rotateParallel(element, 'top', imageRatio)
     }
   }
 
-  resetPosition(element, renderer) {
+  /**
+   * set rotation to either 90 or 270 degrees depending on the direction 
+   * @param { HTMLImageElement } element 
+   * @param { string } direction right or left
+   * @param { number } imageRatio 
+   */
+  private rotatePerpendicular(element, direction, imageRatio) {
+    element.width = window.innerHeight 
+    element.height = window.innerHeight/imageRatio
+    const oppositeDirection = direction === 'right' ? 'left' : 'right'
+    this.renderer.setStyle(element, 'transform-origin', `top ${oppositeDirection}`)
+    this.renderer.setStyle(element, 'transform', `rotate(${direction === 'right' ? '90deg' : '270deg'})`)
+    let offset = element.width - (element.width - element.height)/2
+    this.renderer.setStyle(element, oppositeDirection, `${offset}px`)
+  }
+
+  /**
+   * set rotation to either 0 or 180 degrees depending on the direction 
+   * @param { HTMLImageElement } element 
+   * @param { string }direction top or bottom
+   * @param { number }imageRatio 
+   */
+  private rotateParallel(element, direction, imageRatio) {
+    const screenRatio = window.innerWidth/window.innerHeight
+
+    if (imageRatio > screenRatio) {
+      element.width = window.innerWidth
+      element.height = element.width/imageRatio
+      this.renderer.setStyle(element, 'top', `${(window.innerHeight - element.height)/2}px`)
+    } else {
+      element.height = window.innerHeight 
+      element.width = window.innerHeight*imageRatio
+    }
+
+    this.renderer.setStyle(element, 'transform-origin', 'center center')
+    this.renderer.setStyle(element, 'transform', `rotate(${direction === 'bottom' ? '180deg' : '0deg'})`)
+  }
+
+  /**
+   * set the position back to default before applying a rotation
+   * @param { HTMLImageElement }element
+   * @param { Renderer2 }renderer 
+   */
+  private resetPosition(element, renderer) {
     renderer.setStyle(element, 'right', `auto`)
     renderer.setStyle(element, 'left', `auto`)
     renderer.setStyle(element, 'top', `auto`)

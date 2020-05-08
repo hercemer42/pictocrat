@@ -5,19 +5,20 @@
   <div class='imageHolder'>
     <img
       #image
-      *ngIf='imageService.imageDetails && settingsService.settings'
-      [src]='"http://localhost:" + settingsService.settings.expressJsPort + "/" + imageService.imageDetails.relativeDirectory + "/" + imageService.imageDetails.imageName'
-      (load)='onImageLoad()'
-      (error)='notFound = true'
-      [class.rotate90]='imageService.imageDetails.rotate == 1 && imageService.rendered'
-      [class.rotate180]='imageService.imageDetails.rotate == 2 && imageService.rendered'
-      [class.rotate270]='imageService.imageDetails.rotate == 3 && imageService.rendered'
-    />
+        *ngIf='imageService.imageDetails && settingsService.settings'
+        [src]='"http://localhost:" + settingsService.settings.expressJsPort + "/" + imageService.imageDetails.relativeDirectory + "/" + imageService.imageDetails.imageName'
+        (load)='onImageLoad()'
+        (error)='notFound = true'
+        (window:resize)="onResize($event)"
+        [class.rotate90]='imageService.imageDetails.rotate == 1 && imageService.rendered'
+        [class.rotate180]='imageService.imageDetails.rotate == 2 && imageService.rendered'
+        [class.rotate270]='imageService.imageDetails.rotate == 3 && imageService.rendered'
+      />
+    </div>
+    <div class='noFolder' *ngIf='settingsService.settings && !settingsService.settings.pictureDirectory'>Pick your picture folder to get started.
+      <button (click)='rendererSendService.pickDirectory()'>Open Folder</button>
+    </div>
+    <div *ngIf='notFound'>File not found.
+      <button (click)='rendererSendService.scan()'>Rescan ?</button>
+    </div>
   </div>
-  <div class='noFolder' *ngIf='settingsService.settings && !settingsService.settings.pictureDirectory'>Pick your picture folder to get started.
-    <button (click)='rendererSendService.pickDirectory()'>Open Folder</button>
-  </div>
-  <div *ngIf='notFound'>File not found.
-    <button (click)='rendererSendService.scan()'>Rescan ?</button>
-  </div>
-</div>
