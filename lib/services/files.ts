@@ -42,7 +42,6 @@ class FileService {
         } else if (stats.isFile()) {
 
           if (this.config.fileTypes.indexOf(imageName.split('.').pop().toLowerCase()) !== -1) {
-            console.log('here I am', rootDirectory, directory.replace(rootDirectory, ''))
             const entry = {
               imageName: imageName,
               directory: directory,
@@ -59,14 +58,6 @@ class FileService {
     })
 
     return entries
-  }
-
-  deleteFromHistory(imageDetails) {
-    const inHistory = this.slideShow.imageHistory.images.findIndex((e) => e._id === imageDetails._id)
-
-    if (~inHistory) {
-      this.slideShow.imageHistory.images.splice(inHistory, 1)
-    }
   }
 
   scan(event = null) {
@@ -104,7 +95,7 @@ class FileService {
 
         removals.forEach((removal, i) => {
           self.db.remove({ _id : removal._id }, ((err3) => {
-            self.deleteFromHistory(removal)
+            self.slideShow.deleteFromHistory(removal)
 
             if (i !== removals.length - 1 || !event) {
               return
@@ -162,7 +153,7 @@ class FileService {
       }
 
       self.db.remove({ _id : imageDetails._id }, (() => {
-        self.deleteFromHistory(imageDetails)
+        self.slideShow.deleteFromHistory(imageDetails)
         event.sender.send('deleted', 'Deleted!')
       }))
     })
@@ -172,7 +163,7 @@ class FileService {
     this.slideShow.stopShow()
 
     this.db.update( { _id: imageDetails._id}, { $set: { hidden: true } })
-    this.deleteFromHistory(imageDetails)
+    this.slideShow.deleteFromHistory(imageDetails)
 
     event.sender.send('hidden', 'Image hidden! You can unhide it from the settings/hidden menu.')
     this.slideShow.next(event)
