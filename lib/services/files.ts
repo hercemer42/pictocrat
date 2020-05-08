@@ -8,18 +8,18 @@ class FileService {
   private slideShow
   private rimraf
   private dialog
-  private server
+  private serverService
   private settingsService
 
   // @TODO params + interfaces
-  constructor(fs, db, config, slideShow, rimraf, dialog, server, settingsService) {
+  constructor(fs, db, config, slideShow, rimraf, dialog, serverService, settingsService) {
     this.fs = fs
     this.db = db
     this.config = config
     this.slideShow = slideShow
     this.rimraf = rimraf
     this.dialog = dialog
-    this.server = server
+    this.serverService = serverService
     this.settingsService = settingsService
   }
 
@@ -228,7 +228,7 @@ class FileService {
     this.slideShow.stopShow()
 
     this.settingsService.set({ pictureDirectory: dir[0] })
-    await this.server.startStaticFileServer(dir[0], this.config.defaults.expressJsPort)
+    await this.serverService.startStaticFileServer(dir[0], this.config.defaults.expressJsPort)
 
     const self = this
 
