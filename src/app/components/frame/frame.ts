@@ -5,6 +5,8 @@ import { IconsService } from '../../services/icons'
 import { ImageService } from '../../services/image'
 import { RendererOnService } from '../../services/renderer-on'
 import { RendererSendService } from '../../services/renderer-send'
+import { fromEvent } from 'rxjs'
+import { debounceTime } from 'rxjs/operators'
 
 @Component({
   selector: 'app-frame',
@@ -23,7 +25,17 @@ export class FrameComponent implements OnInit {
     public rendererSendService: RendererSendService,
     private rendererOnService: RendererOnService,
     private renderer: Renderer2
-  ) { }
+  ) {
+      // correct the image proportions on resize
+      fromEvent(window, 'resize')
+        .pipe(
+          debounceTime(10)
+        )
+        .subscribe(() => {
+          this.imageService.rotateImage(this.image.nativeElement, this.renderer);
+        });
+  }
+
   async start() {
     await ipcRenderer.send('getSettings')
     await ipcRenderer.send('start')
@@ -33,7 +45,7 @@ export class FrameComponent implements OnInit {
     this.start()
     this.rendererOnService.init()
   }
-
+  
   onImageLoad() {
     this.imageService.rotateImage(this.image.nativeElement, this.renderer)
   }
