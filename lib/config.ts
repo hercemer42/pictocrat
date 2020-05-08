@@ -8,15 +8,15 @@ const config = {
       'svg',
       'bmp',
       'ico'
-    ],
-    appName: 'PictureViewer',
-    historyLimit: 101,
-    defaults: {
-      slideShowInterval: 3000,
-      maximizeOnIdle: true,
-      idleTimeout: 900000,
-      expressJsPort: 3000,
-      rescanDelayInMinutes: 30
+  ],
+  appName: 'PictureViewer',
+  historyLimit: 101,
+  defaults: {
+    slideShowInterval: 3000,
+    maximizeOnIdle: true,
+    idleTimeout: 900000,
+    expressJsPort: 3000,
+    rescanDelayInMinutes: 30
   }
 }
 

@@ -9,8 +9,8 @@ class ServerService {
   }
 
   async startStaticFileServer(path, port) {
-    await this.server.listen(port, () => console.log(`Picture viewer app listening on port ${port}!`))
     await this.server.use(this.express.static(path))
+    await this.server.listen(port, () => console.log(`Picture viewer app listening on port ${port}!`))
   }
 }
 
