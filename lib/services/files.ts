@@ -118,7 +118,7 @@ class FileService {
     const pictureDirectory = this.settingsService.get('pictureDirectory')
 
     if (imageDetails.directory.indexOf(pictureDirectory) === -1) {
-      event.sender.send('message', 'An error has occured!')
+      event.sender.send('message', 'You cannot delete a directory that is not part of the assigned picture directory')
       return
     }
 
@@ -162,11 +162,11 @@ class FileService {
   hideImage(event, imageDetails) {
     this.slideShow.stopShow()
 
-    this.db.update( { _id: imageDetails._id}, { $set: { hidden: true } })
-    this.slideShow.deleteFromHistory(imageDetails)
-
-    event.sender.send('hidden', 'Image hidden! You can unhide it from the settings/hidden menu.')
-    this.slideShow.next(event)
+    this.db.update( { _id: imageDetails._id}, { $set: { hidden: true } }, () => {
+      this.slideShow.deleteFromHistory(imageDetails)
+      event.sender.send('hidden', 'Image hidden! You can unhide it from the settings/hidden menu.')
+      this.slideShow.next(event)
+    })
   }
 
   hideDirectory(event, imageDetails) {
@@ -175,7 +175,7 @@ class FileService {
     const pictureDirectory = this.settingsService.get('pictureDirectory')
 
     if (imageDetails.directory.indexOf(pictureDirectory) === -1) {
-      event.sender.send('message', 'An error has occured!')
+      event.sender.send('message', 'You cannot hide a directory that is not part of the assigned picture directory')
       return
     }
 
