@@ -126,7 +126,7 @@ export class ImageService {
     const oppositeDirection = direction === 'right' ? 'left' : 'right'
     this.renderer.setStyle(element, 'transform-origin', `top ${oppositeDirection}`)
     this.renderer.setStyle(element, 'transform', `rotate(${direction === 'right' ? '90deg' : '270deg'})`)
-    let offset = element.width - (element.width - element.height)/2
+    const offset = element.width - (element.width - element.height)/2
     this.renderer.setStyle(element, oppositeDirection, `${offset}px`)
   }
 

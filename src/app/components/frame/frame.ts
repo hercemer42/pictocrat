@@ -36,9 +36,9 @@ export class FrameComponent implements OnInit {
         });
   }
 
-  async start() {
-    await ipcRenderer.send('getSettings')
-    await ipcRenderer.send('start')
+  start() {
+    ipcRenderer.send('getSettings')
+    ipcRenderer.send('start')
   }
 
   ngOnInit() {

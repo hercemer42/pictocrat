@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core'
+import { Component } from '@angular/core'
 import { SettingsService } from '../../services/settings'
 import { RendererSendService } from '../../services/renderer-send'
 import { IconsService } from '../../services/icons'
