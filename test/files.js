@@ -226,55 +226,55 @@ describe('Array', function() {
 
       fileService.deleteDirectory(event, { directory: pictureDirectory + '/images4' })
     })
-  })
 
-  it ('Should not delete the root directory!', function(done) {
-    subject.subscribe({
-      next: (message) => {
-        expect(message).to.equal('You cannot delete a directory that is not part of the assigned picture directory')
-        done()
-      }
-    })
-
-    fileService.deleteDirectory(event, { directory: '/' })
-  })
-
-  it ('Should not delete the root picture directory', function(done) {
-    subject.subscribe({
-      next: (message) => {
-        expect(message).to.equal('You cannot delete the root picture folder!')
-        done()
-      }
-    })
-
-    fileService.deleteDirectory(event, { directory: pictureDirectory })
-  })
-
-  it ('Should delete a file', function(done) {
-    db.findOne({ imageName: 'testFile2.jpg'}, ((err, imageDetails) => {
+    it ('Should not delete the root directory!', function(done) {
       subject.subscribe({
         next: (message) => {
-          expect(message).to.equal('Deleted!')
-
-          db.find({ imageName: 'testFile2.jpg' }, ((err, entries) => {
-            expect(entries.length).to.equal(0)
-            done()
-          }) )
+          expect(message).to.equal('You cannot delete a directory that is not part of the assigned picture directory')
+          done()
         }
       })
 
-      fileService.deleteImage(event, imageDetails)
-    }))
-  })
-
-  it ('Should not delete a file with a bad path name', function(done) {
-    subject.subscribe({
-      next: (message) => {
-        expect(message).to.equal('Image not found!')
-        done()
-      }
+      fileService.deleteDirectory(event, { directory: '/' })
     })
 
-    fileService.deleteImage(event, { directory: 'impossible directory', imageName: 'impossible image name'})
+    it ('Should not delete the root picture directory', function(done) {
+      subject.subscribe({
+        next: (message) => {
+          expect(message).to.equal('You cannot delete the root picture folder!')
+          done()
+        }
+      })
+
+      fileService.deleteDirectory(event, { directory: pictureDirectory })
+    })
+
+    it ('Should delete a file', function(done) {
+      db.findOne({ imageName: 'testFile2.jpg'}, ((err, imageDetails) => {
+        subject.subscribe({
+          next: (message) => {
+            expect(message).to.equal('Deleted!')
+
+            db.find({ imageName: 'testFile2.jpg' }, ((err, entries) => {
+              expect(entries.length).to.equal(0)
+              done()
+            }) )
+          }
+        })
+
+        fileService.deleteImage(event, imageDetails)
+      }))
+    })
+
+    it ('Should not delete a file with a bad path name', function(done) {
+      subject.subscribe({
+        next: (message) => {
+          expect(message).to.equal('Image not found!')
+          done()
+        }
+      })
+
+      fileService.deleteImage(event, { directory: 'impossible directory', imageName: 'impossible image name'})
+    })
   })
 })
