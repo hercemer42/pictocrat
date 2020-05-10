@@ -1,5 +1,5 @@
-import {expect} from 'chai';
-import {SpectronClient} from 'spectron';
+import { expect } from 'chai';
+import { SpectronClient } from 'spectron';
 
 import commonSetup from './common-setup';
 
@@ -14,14 +14,20 @@ describe('angular-electron App', function () {
     browser = client as any;
   });
 
-  it('should display message saying App works !', async function () {
-    const text = await browser.getText('app-home h1');
-    expect(text).to.equal('App works !');
-  });
-
   it('creates initial windows', async function () {
     const count = await client.getWindowCount();
     expect(count).to.equal(1);
   });
 
+  it('should get the window\'s title!', async function () {
+    const text = await client.getTitle()
+    expect(text).to.equal('Picture Viewer');
+  });
+
+  it ('should open the settings menu', async function () {
+    const menu = await client.$('div[data-tooltip="Settings"]')
+      .click()
+    const text = await client.$('.settings h4').getText()
+    expect(text).to.equal('Settings')
+  })
 });
