@@ -1,15 +1,13 @@
 const fs = require('fs')
-const Datastore = require('nedb')
 const { expect } = require('chai')
 const express = require('express')
 const { Subject } = require('rxjs')
-const dbPath = './assets/app.db'
-const db = new Datastore({ filename: dbPath, autoload: true });
 const { config } = require('../lib/config')
 const { SettingsService } = require('../lib/services/settings')
 const { FileService } = require('../lib/services/files')
 const pictureDirectory = __dirname + '/assets/images'
 const directoryContents = require('./fixtures/directoryContents')
+const { db } = require('./connection/database')
 
 // mock directoryContents
 directoryContents.contents.forEach(d => d.directory = pictureDirectory + d.relativeDirectory)
@@ -54,7 +52,7 @@ let subject = new Subject()
 
 const event = {
   sender: {
-    send: function(eventType, message) {
+    send: (eventType, message) => {
       return subject.next(message)
     }
   },
@@ -62,17 +60,17 @@ const event = {
 }
 
 // stub rimraf
-function rimraf (directory, cb) {
+let rimraf = (directory, cb) => {
   cb()
 }
 
-function removeTemporaryFile(path) {
+let removeTemporaryFile = path => {
   if (fs.existsSync(path)) {
     fs.unlinkSync(path)
   }
 }
 
-describe('Array', function() {
+describe('Files service', () => {
   let settingsService
 
   before(() => {
@@ -88,10 +86,10 @@ describe('Array', function() {
     subject = new Subject()
   })
 
-  describe('database', function() {
-    it('Should empty the database', function(done) {
-      db.remove({ }, { multi: true }, function (err, numRemoved) {
-        db.loadDatabase(function (err) {
+  describe('database', () => {
+    it('Should empty the database', done => {
+      db.remove({ }, { multi: true }, (err, numRemoved) => {
+        db.loadDatabase(err => {
           expect(err).to.be.null
           done()
         });
@@ -99,25 +97,25 @@ describe('Array', function() {
     })
   })
 
-  describe('files', function() {
-    it ('Should select the picture directory', async function() {
+  describe('files', () => {
+    it ('Should select the picture directory', async () => {
       await fileService.pickDirectory(event)
       expect(settingsService.get('pictureDirectory')).to.equal(pictureDirectory)
     })
 
-    it ('Should read the picture directory', function() {
+    it ('Should read the picture directory', () => {
       removeTemporaryFile(pictureDirectory + '/testFile2.jpg')
       fs.writeFileSync(pictureDirectory + '/testFile.jpg')
       let entries = fileService.readDirectory(pictureDirectory)
       expect(entries).to.eql(directoryContents.contents)
     })
 
-    it ('Should scan the picture directory for changes', function(done) {
+    it ('Should scan the picture directory for changes', done => {
       fs.writeFileSync(pictureDirectory + '/testFile2.jpg')
       removeTemporaryFile(pictureDirectory + '/testFile.jpg')
 
       subject.subscribe({
-        next: (message) => {
+        next: message => {
           expect(message).to.equal('Scan complete!')
 
           db.find({}, ((err, entries) => {
@@ -135,10 +133,10 @@ describe('Array', function() {
       fileService.scan(event)
     })
 
-    it ('Should hide an image', function(done) {
+    it ('Should hide an image', done => {
       db.findOne({ imageName: 'testFile2.jpg'}, ((err, imageDetails) => {
         subject.subscribe({
-          next: (message) => {
+          next: message => {
             expect(message).to.equal('Image hidden! You can unhide it from the settings/hidden menu.')
 
             db.find({ hidden: true }, ((err, entries) => {
@@ -153,9 +151,9 @@ describe('Array', function() {
       }))
     })
 
-    it ('Should hide a directory', function(done) {
+    it ('Should hide a directory', done => {
       subject.subscribe({
-        next: (message) => {
+        next: message => {
           expect(message).to.equal('Directory hidden! You can unhide it from the settings/hidden menu.')
           
           db.find({hidden: true }, ((err, entries) => {
@@ -168,9 +166,9 @@ describe('Array', function() {
       fileService.hideDirectory(event, { directory: pictureDirectory + '/images1'})
     })
 
-    it ('Should not hide the root directory!', function(done) {
+    it ('Should not hide the root directory!', done => {
       subject.subscribe({
-        next: (message) => {
+        next: message => {
           expect(message).to.equal('You cannot hide a directory that is not part of the assigned picture directory')
           done()
         }
@@ -179,9 +177,9 @@ describe('Array', function() {
       fileService.hideDirectory(event, { directory: '/' })
     })
 
-    it ('Should not hide the root picture directory', function(done) {
+    it ('Should not hide the root picture directory', done => {
       subject.subscribe({
-        next: (message) => {
+        next: message => {
           expect(message).to.equal('You cannot hide the root picture folder!')
           done()
         }
@@ -190,14 +188,14 @@ describe('Array', function() {
       fileService.hideDirectory(event, { directory: pictureDirectory })
     })
 
-    it ('Should get the list of hidden files', function(done) {
+    it ('Should get the list of hidden files', done => {
       const result = updatedDirectoryContents.filter(d => {
         d.hidden = true
         return d.relativeDirectory === '/images1' || d.imageName === 'testFile2.jpg'
       })
 
       subject.subscribe({
-        next: (message) => {
+        next: message => {
           message = message
             .map(m => {
               delete m._id
@@ -213,9 +211,9 @@ describe('Array', function() {
       fileService.getHiddenList(event)
     })
 
-    it ('Should delete a directory', function(done) {
+    it ('Should delete a directory', done => {
       subject.subscribe({
-        next: (message) => {
+        next: message => {
           expect(message).to.equal('Deleted!')
           db.find({ relativeDirectory: 'images4'}, ((err, results) => {
             expect(results.length).to.equal(0)
@@ -227,9 +225,9 @@ describe('Array', function() {
       fileService.deleteDirectory(event, { directory: pictureDirectory + '/images4' })
     })
 
-    it ('Should not delete the root directory!', function(done) {
+    it ('Should not delete the root directory!', done => {
       subject.subscribe({
-        next: (message) => {
+        next: message => {
           expect(message).to.equal('You cannot delete a directory that is not part of the assigned picture directory')
           done()
         }
@@ -238,9 +236,9 @@ describe('Array', function() {
       fileService.deleteDirectory(event, { directory: '/' })
     })
 
-    it ('Should not delete the root picture directory', function(done) {
+    it ('Should not delete the root picture directory', done => {
       subject.subscribe({
-        next: (message) => {
+        next: message => {
           expect(message).to.equal('You cannot delete the root picture folder!')
           done()
         }
@@ -249,10 +247,10 @@ describe('Array', function() {
       fileService.deleteDirectory(event, { directory: pictureDirectory })
     })
 
-    it ('Should delete a file', function(done) {
+    it ('Should delete a file', done => {
       db.findOne({ imageName: 'testFile2.jpg'}, ((err, imageDetails) => {
         subject.subscribe({
-          next: (message) => {
+          next: message => {
             expect(message).to.equal('Deleted!')
 
             db.find({ imageName: 'testFile2.jpg' }, ((err, entries) => {
@@ -266,9 +264,9 @@ describe('Array', function() {
       }))
     })
 
-    it ('Should not delete a file with a bad path name', function(done) {
+    it ('Should not delete a file with a bad path name', done => {
       subject.subscribe({
-        next: (message) => {
+        next: message => {
           expect(message).to.equal('Image not found!')
           done()
         }
@@ -277,4 +275,5 @@ describe('Array', function() {
       fileService.deleteImage(event, { directory: 'impossible directory', imageName: 'impossible image name'})
     })
   })
+
 })

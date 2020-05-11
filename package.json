@@ -35,7 +35,7 @@
     "lint": "ng lint",
     "testFront": "ng test",
     "test": "npm run electron:serve-tsc && mocha --exit",
-    "watchNodeTests": "node_modules/onchange/dist/bin.js 'test/**/*.js' 'lib/**/*.ts' -- npm run testNode",
+    "watchNodeTests": "node_modules/onchange/dist/bin.js 'test/**/*.js' 'lib/**/*.ts' -- npm run test",
     "e2e": "npm run build:prod && cross-env TS_NODE_PROJECT='e2e/tsconfig.e2e.json' mocha --timeout 300000 --require ts-node/register e2e/**/*.e2e.ts",
     "watchE2eTests": "node_modules/onchange/dist/bin.js 'e2e/**/*.ts' 'src/**/*.ts' -- npm run e2e"
   },
