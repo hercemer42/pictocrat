@@ -1,45 +1,17 @@
-// @TODO rename all service classes as service
 // @TODO interfaces
 // @TODO params
-// @TODO look into creating container for singletons
 
 // import external modules
-import { app, BrowserWindow, screen, ipcMain, dialog } from 'electron'
+import { app, BrowserWindow, screen, ipcMain } from 'electron'
 import * as path from 'path'
 import * as url from 'url'
-import * as fs from 'fs'
-import * as Rx from 'rxjs/Rx'
-const Datastore = require('nedb')
-const rimraf = require('rimraf')
-const systemIdleTime = require('desktop-idle')
-const express = require('express')
-
-// import internal modules
-import { startEvents } from './lib/services/browser-events'
-import { FileService } from './lib/services/files'
-import { SlideShow } from './lib/services/slideshow'
-import { IdleService } from './lib/services/idle'
-import { SettingsService } from './lib/services/settings'
-import { ServerService } from './lib/services/server'
-
-// import config
 import { config } from './lib/config'
+import { startEvents } from './lib/services/browser-events'
+import { Container } from './lib/services/container'
 
-// declare variables
-const dbPath = app.getPath('userData') + '/app.db'
-const settingsPath = app.getPath('userData') + '/settings.json'
-const idleTime = systemIdleTime.getIdleTime()
+const container = new Container
 
-// singleton instantiation
-const settingsService = new SettingsService(fs, settingsPath, config)
-const db = new Datastore({ filename: dbPath, autoload: true });
-const slideShow = new SlideShow(db, config, settingsService, Rx)
-const serverService = new ServerService(express)
-// @TODO see if this can be refactored to reduce dependencies
-const fileService = new FileService(fs, db, config, slideShow, rimraf, dialog, serverService, settingsService)
-const idleService = new IdleService(idleTime, settingsService)
-
-startEvents(ipcMain, fileService, slideShow, settingsService)
+startEvents(ipcMain, container.fileService, container.slideShowService, container.settingsService)
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -94,8 +66,8 @@ function createWindow(): BrowserWindow {
  */
 function scanPeriodically() {
   setTimeout(() => {
-    fileService.scan()
-  }, settingsService.get('rescanDelayInMinutes') * 60 * 1000)
+    container.fileService.scan()
+  }, container.settingsService.get('rescanDelayInMinutes') * 60 * 1000)
 }
 
 try {
@@ -123,13 +95,13 @@ try {
   });
 
   app.on('ready', () => {
-    idleService.startTimer(win)
+    container.idleService.startTimer(win)
 
-    let pictureDirectory = settingsService.get('pictureDirectory')
+    let pictureDirectory = container.settingsService.get('pictureDirectory')
 
     if (pictureDirectory) {
-      fileService.scan()
-      serverService.startStaticFileServer(pictureDirectory, config.defaults.expressJsPort)
+      container.fileService.scan()
+      container.serverService.startStaticFileServer(pictureDirectory, config.defaults.expressJsPort)
       scanPeriodically()
     }
   })

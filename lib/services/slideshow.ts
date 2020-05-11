@@ -1,7 +1,7 @@
 import { IpcMainEvent } from "electron"
 import { ImageDetails } from "../../models/models"
 
-class SlideShow {
+class SlideShowService {
   private Rx
   private db
   private config
@@ -154,4 +154,4 @@ class SlideShow {
   }
 }
 
-export { SlideShow }
+export { SlideShowService }
