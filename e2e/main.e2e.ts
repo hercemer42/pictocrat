@@ -8,9 +8,8 @@ describe('angular-electron App', () => {
 
   let client: SpectronClient;
 
-  beforeEach(() => {
+  beforeEach(function () {
     client = this.app.client;
-    browser = client as any;
   });
 
   it('creates initial windows', async () => {
