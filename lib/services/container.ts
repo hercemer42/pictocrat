@@ -2,10 +2,10 @@
 import * as fs from 'fs'
 import * as Rx from 'rxjs/Rx'
 import { app, dialog } from 'electron'
-const Datastore = require('nedb')
-const systemIdleTime = require('desktop-idle')
-const express = require('express')
-const rimraf = require('rimraf')
+import * as Datastore from 'nedb'
+import * as systemIdleTime from 'desktop-idle'
+import * as express from 'express'
+import * as rimraf from 'rimraf'
 // import internal modules
 import { FileService } from './files'
 import { SlideShowService } from './slideshow'
