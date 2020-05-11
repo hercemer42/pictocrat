@@ -34,7 +34,7 @@ class Dialog {
 }
 
 // stub slideshow
-class SlideShow {
+class SlideShowService {
   imageHistory = { images: [] }
   stopShow() {}
   start() {}
@@ -76,10 +76,10 @@ describe('Files service', () => {
   before(() => {
     const settingsPath = 'assets/settings.json'
     settingsService = new SettingsService(fs, settingsPath, config)
-    const slideShow = new SlideShow()
+    const slideShowService = new SlideShowService()
     const serverService = new ServerService(express)
     const dialog = new Dialog
-    fileService = new FileService(fs, db, config, slideShow, rimraf, dialog, serverService, settingsService)
+    fileService = new FileService(fs, db, config, slideShowService, rimraf, dialog, serverService, settingsService)
   }) 
   
   beforeEach(() => {

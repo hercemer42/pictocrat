@@ -2,7 +2,7 @@ const fs = require('fs')
 const { expect } = require('chai')
 const { Subject } = require('rxjs')
 const Rx = require('rxjs/Rx')
-const { SlideShow } = require('../lib/services/slideshow')
+const { SlideShowService } = require('../lib/services/slideshow')
 const { SettingsService } = require('../lib/services/settings')
 const { config } = require('../lib/config')
 const { db } = require('./connection/database')
@@ -20,14 +20,14 @@ const event = {
 }
 
 describe('Slideshow service', () => {
-  let slideShow
+  let slideShowService
   let firstImage
   let nextImage
 
   before(() => {
     const settingsPath = 'assets/settings.json'
     settingsService = new SettingsService(fs, settingsPath, config)
-    slideShow = new SlideShow(db, config, settingsService, Rx)
+    slideShowService = new SlideShowService(db, config, settingsService, Rx)
   }) 
 
   beforeEach(() => {
@@ -36,7 +36,7 @@ describe('Slideshow service', () => {
   
   describe('slideshow', () => {
     it('Should start the slideshow', done => {
-      slideShow.start(event)
+      slideShowService.start(event)
 
       subject.subscribe({
         next: message => {
@@ -48,12 +48,12 @@ describe('Slideshow service', () => {
     })
 
     it ('Should update the history', done => {
-      expect(slideShow.imageHistory.images[0]).to.eql(firstImage)
+      expect(slideShowService.imageHistory.images[0]).to.eql(firstImage)
       done()
     })
 
     it ('Should get the next image', done => {
-      slideShow.nextRandomImage(event)
+      slideShowService.nextRandomImage(event)
 
       subject.subscribe({
         next: message => {
@@ -66,7 +66,7 @@ describe('Slideshow service', () => {
     })
 
     it ('Should get the previous image', done => {
-      slideShow.previousInHistory(event)
+      slideShowService.previousInHistory(event)
 
       subject.subscribe({
         next: message => {
@@ -77,7 +77,7 @@ describe('Slideshow service', () => {
     })
 
     it ('Should get the next image in the history', done => {
-      slideShow.nextInHistory(event)
+      slideShowService.nextInHistory(event)
 
       subject.subscribe({
         next: message => {
@@ -88,7 +88,7 @@ describe('Slideshow service', () => {
     })
 
     it ('Should get the next random image when there are none left in the history', done => {
-      slideShow.nextInHistory(event)
+      slideShowService.nextInHistory(event)
 
       subject.subscribe({
         next: message => {
@@ -100,13 +100,13 @@ describe('Slideshow service', () => {
     })
 
     it ('Should delete an image from the image history', () => {
-      slideShow.deleteFromHistory(nextImage)
-      expect(slideShow.imageHistory.images.every(i => i.imagename !== nextImage.imageName)).to.be.true
+      slideShowService.deleteFromHistory(nextImage)
+      expect(slideShowService.imageHistory.images.every(i => i.imagename !== nextImage.imageName)).to.be.true
     })
 
     it ('Should set "shown" status of all images to false once they have all been shown once, then start again', done => {
       db.update({}, { $set: { shown: true } }, { multi: true }, () => {
-        slideShow.nextRandomImage(event)
+        slideShowService.nextRandomImage(event)
 
         subject.subscribe({
           next: message => {
