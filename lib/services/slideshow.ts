@@ -90,6 +90,7 @@ class SlideShow {
 
   nextRandomImage(event) {
     const self = this
+
     this.db.count({ shown: false, hidden: false }, function (err, count) {
       if (err) {
         return
@@ -116,13 +117,16 @@ class SlideShow {
       }
 
       const skipCount = Math.floor(Math.random() * count)
+
+      // skip and limit are nedb methods that we use to find a pseudo-random image
       self.db.find({ shown: false, hidden: false }).skip(skipCount).limit(1).exec((err2, result) => {
         const imageDetails = result[0]
 
         if (!err2) {
-          event.sender.send('newImage', imageDetails)
-          self.updateHistory(imageDetails)
-          self.db.update( { _id: imageDetails._id}, { $set: { shown: true } })
+          self.db.update( { _id: imageDetails._id}, { $set: { shown: true } }, (() => {
+            self.updateHistory(imageDetails)
+            event.sender.send('newImage', imageDetails)
+          }))
         }
       })
     })
