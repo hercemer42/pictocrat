@@ -1,5 +1,5 @@
 import { Injectable, NgZone, Renderer2 } from '@angular/core'
-import { ImageDetails } from '../models/models'
+import { ImageDetails } from '../../../models/models'
 import { RendererSendService } from './renderer-send'
 
 @Injectable()

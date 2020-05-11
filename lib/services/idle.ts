@@ -1,3 +1,5 @@
+import { BrowserWindow } from "electron"
+
 class IdleService {
   private systemIdleTime
   private settingsService
@@ -7,7 +9,7 @@ class IdleService {
     this.settingsService = settingsService
   }
 
-  startTimer(win) {
+  startTimer(win: BrowserWindow) {
     if (!this.settingsService.get('maximizeOnIdle')) {
       return
     }

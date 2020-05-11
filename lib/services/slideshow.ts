@@ -1,5 +1,7 @@
+import { IpcMainEvent } from "electron"
+import { ImageDetails } from "../../models/models"
+
 class SlideShow {
-  // @TODO types
   private Rx
   private db
   private config
@@ -22,7 +24,7 @@ class SlideShow {
     this.subscription.unsubscribe()
   }
 
-  historyBrowse(event) {
+  historyBrowse(event: IpcMainEvent) {
     const image = this.imageHistory.images[this.imageHistory.position]
 
     if (!image) {
@@ -42,7 +44,7 @@ class SlideShow {
     })
   }
 
-  next(event) {
+  next(event: IpcMainEvent) {
     this.subscription ? this.nextRandomImage(event) : this.nextInHistory(event)
   }
 
@@ -58,7 +60,7 @@ class SlideShow {
     this.historyBrowse(event)
   }
 
-  previousInHistory(event) {
+  previousInHistory(event: IpcMainEvent) {
     this.stopShow()
 
     if (this.imageHistory.position === 0) {
@@ -70,7 +72,7 @@ class SlideShow {
     this.historyBrowse(event)
   }
 
-  updateHistory(imageDetails) {
+  updateHistory(imageDetails: ImageDetails) {
     this.imageHistory.images.push(imageDetails)
 
     if (this.imageHistory.images.length === this.config.historyLimit) {
@@ -80,7 +82,7 @@ class SlideShow {
     this.imageHistory.position = this.imageHistory.images.length - 1
   }
 
-  deleteFromHistory(imageDetails) {
+  deleteFromHistory(imageDetails: ImageDetails) {
     const inHistory = this.imageHistory.images.findIndex((e) => e._id === imageDetails._id)
 
     if (~inHistory) {
@@ -88,7 +90,7 @@ class SlideShow {
     }
   }
 
-  nextRandomImage(event) {
+  nextRandomImage(event: IpcMainEvent) {
     const self = this
 
     this.db.count({ shown: false, hidden: false }, function (err, count) {
@@ -132,7 +134,7 @@ class SlideShow {
     })
   }
 
-  async start(event) {
+  async start(event: IpcMainEvent) {
     // stop the show if it's already running to avoid running multiple instances concurrently
     this.stopShow()
 

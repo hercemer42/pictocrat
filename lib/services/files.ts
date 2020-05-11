@@ -1,3 +1,6 @@
+import { ImageDetails, DirectoryDetails } from "../../models/models"
+import { IpcMainEvent } from "electron"
+
 /**
  * Picture file & directory manipulation and retrieval service
  */
@@ -23,7 +26,7 @@ class FileService {
     this.settingsService = settingsService
   }
 
-  readDirectory(directory, entries = []) {
+  readDirectory(directory: string, entries: Array<ImageDetails> = []) {
     let rootDirectory = this.settingsService.get('pictureDirectory')
 
     if (!directory) {
@@ -60,7 +63,7 @@ class FileService {
     return entries
   }
 
-  scan(event = null) {
+  scan(event: IpcMainEvent = null) {
     const dir = this.settingsService.get('pictureDirectory')
     const fileDetails = this.readDirectory(dir)
     const updates = []
@@ -108,13 +111,13 @@ class FileService {
     }))
   }
 
-  getHiddenList(event) {
+  getHiddenList(event: IpcMainEvent) {
     this.db.find({ hidden: true }).sort({ directory: 1 }).exec((err, entries) => {
       event.sender.send('sendHiddenList', entries)
     })
   }
 
-  deleteDirectory(event, imageDetails) {
+  deleteDirectory(event: IpcMainEvent, imageDetails: ImageDetails) {
     const pictureDirectory = this.settingsService.get('pictureDirectory')
 
     if (imageDetails.directory.indexOf(pictureDirectory) === -1) {
@@ -141,7 +144,7 @@ class FileService {
     })
   }
 
-  deleteImage(event, imageDetails) {
+  deleteImage(event: IpcMainEvent, imageDetails: ImageDetails) {
     this.slideShow.stopShow()
 
     const self = this
@@ -159,7 +162,7 @@ class FileService {
     })
   }
 
-  hideImage(event, imageDetails) {
+  hideImage(event: IpcMainEvent, imageDetails: ImageDetails) {
     this.slideShow.stopShow()
 
     this.db.update( { _id: imageDetails._id}, { $set: { hidden: true } }, () => {
@@ -169,7 +172,7 @@ class FileService {
     })
   }
 
-  hideDirectory(event, imageDetails) {
+  hideDirectory(event: IpcMainEvent, imageDetails: ImageDetails) {
     this.slideShow.stopShow()
 
     const pictureDirectory = this.settingsService.get('pictureDirectory')
@@ -194,23 +197,23 @@ class FileService {
     }))
   }
 
-  toggleHideFile(event, imageDetails) {
+  toggleHideFile(imageDetails: ImageDetails) {
     this.db.update( { _id: imageDetails._id}, { $set: { hidden: imageDetails.hidden } } )
   }
 
-  showDirectory(event, directory) {
-    this.db.update( { directory: directory.directory }, { $set: { hidden: false } }, { multi: true } )
+  showDirectory(directoryDetails: DirectoryDetails) {
+    this.db.update( { directory: directoryDetails.directory }, { $set: { hidden: false } }, { multi: true } )
   }
 
-  reHideFiles(event, ids) {
+  reHideFiles(ids: Array<string>) {
     this.db.update( { _id: { $in: ids}}, { $set: { hidden: true }}, { multi: true } )
   }
 
-  updateDetails(event, imageDetails) {
+  updateDetails(imageDetails: ImageDetails) {
     this.db.update( { _id: imageDetails._id }, { $set: imageDetails } )
   }
 
-  async pickDirectory(event) {
+  async pickDirectory(event: IpcMainEvent) {
     const dir = this.dialog.showOpenDialogSync({ properties: ['openDirectory'] })
     if (!dir) {
       return

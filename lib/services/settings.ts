@@ -10,7 +10,7 @@ class SettingsService {
   /**
    * @param {object} settings 
    */
-  set(settings) {
+  set(settings: Object) {
     let existingSettings = {}
 
     if (this.fs.existsSync(this.settingsPath)) {
@@ -23,7 +23,7 @@ class SettingsService {
   /**
    * @param {string} settingName 
    */
-  get(settingName = null) {
+  get(settingName: string = null) {
     if (this.fs.existsSync(this.settingsPath)) {
       let settings = {}
 

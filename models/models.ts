@@ -5,4 +5,9 @@ export class ImageDetails {
   shown: boolean
   hidden: boolean
   rotate: number
+  _id?: string
+}
+
+export class DirectoryDetails extends ImageDetails {
+  type: string
 }
