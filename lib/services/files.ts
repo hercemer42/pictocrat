@@ -8,24 +8,35 @@ class FileService {
   private fs
   private db
   private config
-  private slideShow
+  private slideShowService
   private rimraf
   private dialog
   private serverService
   private settingsService
 
-  // @TODO params + interfaces
-  constructor(fs, db, config, slideShow, rimraf, dialog, serverService, settingsService) {
-    this.fs = fs
+  /**
+   * @param db the database connection
+   * @param config 
+   * @param modules module imports from container
+   * @param services service singletons from container
+   */
+  constructor(db, config, modules, services) {
+    this.fs = modules.fs
     this.db = db
     this.config = config
-    this.slideShow = slideShow
-    this.rimraf = rimraf
-    this.dialog = dialog
-    this.serverService = serverService
-    this.settingsService = settingsService
+    this.slideShowService = services.slideShowService
+    this.rimraf = modules.rimraf
+    this.dialog = modules.dialog
+    this.serverService = services.serverService
+    this.settingsService = services.settingsService
   }
 
+  /**
+   * Reads the user-provided directory and builds a list of image files present in it. 
+   * @param directory The directory to read the contents from
+   * @param entries The array of entries in the directory, which gets populated recursively
+   * @returns the array of entries
+   */
   readDirectory(directory: string, entries: Array<ImageDetails> = []) {
     let rootDirectory = this.settingsService.get('pictureDirectory')
 
@@ -63,6 +74,11 @@ class FileService {
     return entries
   }
 
+  /**
+   * Scans the user provided directory for new or delated images
+   * and updates the image database and image history with the changes 
+   * @param event 
+   */
   scan(event: IpcMainEvent = null) {
     const dir = this.settingsService.get('pictureDirectory')
     const fileDetails = this.readDirectory(dir)
@@ -98,7 +114,7 @@ class FileService {
 
         removals.forEach((removal, i) => {
           self.db.remove({ _id : removal._id }, ((err3) => {
-            self.slideShow.deleteFromHistory(removal)
+            self.slideShowService.deleteFromHistory(removal)
 
             if (i !== removals.length - 1 || !event) {
               return
@@ -111,6 +127,9 @@ class FileService {
     }))
   }
 
+  /** 
+   * Gets the list of hidden files to display in the settings unhide page
+   */
   getHiddenList(event: IpcMainEvent) {
     this.db.find({ hidden: true }).sort({ directory: 1 }).exec((err, entries) => {
       event.sender.send('sendHiddenList', entries)
@@ -130,14 +149,14 @@ class FileService {
       return
     }
 
-    this.slideShow.stopShow()
+    this.slideShowService.stopShow()
 
     const self = this
 
     this.rimraf(imageDetails.directory, function () {
       self.db.remove({directory: imageDetails.directory}, { multi: true }, (() => {
-        self.slideShow.imageHistory.images = self.slideShow.imageHistory.images.filter((e) => e.directory !== imageDetails.directory)
-        self.slideShow.imageHistory.position = self.slideShow.imageHistory.images.length - 1
+        self.slideShowService.imageHistory.images = self.slideShowService.imageHistory.images.filter((e) => e.directory !== imageDetails.directory)
+        self.slideShowService.imageHistory.position = self.slideShowService.imageHistory.images.length - 1
 
         event.sender.send('deleted', 'Deleted!')
       }))
@@ -145,7 +164,7 @@ class FileService {
   }
 
   deleteImage(event: IpcMainEvent, imageDetails: ImageDetails) {
-    this.slideShow.stopShow()
+    this.slideShowService.stopShow()
 
     const self = this
 
@@ -156,24 +175,34 @@ class FileService {
       }
 
       self.db.remove({ _id : imageDetails._id }, (() => {
-        self.slideShow.deleteFromHistory(imageDetails)
+        self.slideShowService.deleteFromHistory(imageDetails)
         event.sender.send('deleted', 'Deleted!')
       }))
     })
   }
 
+  /**
+   * Hides an image by tagging it as hidden in the database 
+   * @param event 
+   * @param imageDetails 
+   */
   hideImage(event: IpcMainEvent, imageDetails: ImageDetails) {
-    this.slideShow.stopShow()
+    this.slideShowService.stopShow()
 
     this.db.update( { _id: imageDetails._id}, { $set: { hidden: true } }, () => {
-      this.slideShow.deleteFromHistory(imageDetails)
+      this.slideShowService.deleteFromHistory(imageDetails)
       event.sender.send('hidden', 'Image hidden! You can unhide it from the settings/hidden menu.')
-      this.slideShow.next(event)
+      this.slideShowService.next(event)
     })
   }
 
+  /**
+   * Hides all images in a directory by tagging them as hidden in the database 
+   * @param event
+   * @param imageDetails 
+   */
   hideDirectory(event: IpcMainEvent, imageDetails: ImageDetails) {
-    this.slideShow.stopShow()
+    this.slideShowService.stopShow()
 
     const pictureDirectory = this.settingsService.get('pictureDirectory')
 
@@ -190,22 +219,33 @@ class FileService {
     const self = this
 
     this.db.update({ directory: imageDetails.directory }, { $set: { hidden: true } }, { multi: true }, (images => {
-      self.slideShow.imageHistory.images = self.slideShow.imageHistory.images.filter((e) => e.directory !== imageDetails.directory)
-      self.slideShow.imageHistory.position = self.slideShow.imageHistory.images.length - 1
+      self.slideShowService.imageHistory.images = self.slideShowService.imageHistory.images.filter((e) => e.directory !== imageDetails.directory)
+      self.slideShowService.imageHistory.position = self.slideShowService.imageHistory.images.length - 1
       event.sender.send('hidden', 'Directory hidden! You can unhide it from the settings/hidden menu.')
-      self.slideShow.next(event)
+      self.slideShowService.next(event)
     }))
   }
 
+  /**
+   * Toggle the hidden attribute of a file 
+   * @param imageDetails
+   */
   toggleHideFile(imageDetails: ImageDetails) {
     this.db.update( { _id: imageDetails._id}, { $set: { hidden: imageDetails.hidden } } )
   }
 
+  /**
+   * Show (unhide) all files in a directory
+   * */
   showDirectory(directoryDetails: DirectoryDetails) {
     this.db.update( { directory: directoryDetails.directory }, { $set: { hidden: false } }, { multi: true } )
   }
 
-  reHideFiles(ids: Array<string>) {
+  /**
+   * Hides a bunch of files by their id
+   * @param { string[] }ids the ids of the files to be hidden
+   */
+  hideFilesById(ids: Array<string>) {
     this.db.update( { _id: { $in: ids}}, { $set: { hidden: true }}, { multi: true } )
   }
 
@@ -213,23 +253,30 @@ class FileService {
     this.db.update( { _id: imageDetails._id }, { $set: imageDetails } )
   }
 
+  /**
+   * Prompts the user to pick the directory that contains their images
+   * @param event 
+   */
   async pickDirectory(event: IpcMainEvent) {
+    // prompt the user to pick an image directory
     const dir = this.dialog.showOpenDialogSync({ properties: ['openDirectory'] })
+
     if (!dir) {
       return
     }
 
-    this.slideShow.stopShow()
+    this.slideShowService.stopShow()
 
     this.settingsService.set({ pictureDirectory: dir[0] })
     await this.serverService.startStaticFileServer(dir[0], this.config.defaults.expressJsPort)
 
     const self = this
 
+    // delete all existing entries from the database and update it with the new ones
     this.db.remove({}, { multi: true }, function () {
       self.db.insert(self.readDirectory(dir[0]), ((err) => {
         event.sender.send('sendSettings', self.settingsService.get())
-        self.slideShow.start(event)
+        self.slideShowService.start(event)
       }))
     })
   }

@@ -79,7 +79,12 @@ describe('Files service', () => {
     const slideShowService = new SlideShowService()
     const serverService = new ServerService(express)
     const dialog = new Dialog
-    fileService = new FileService(fs, db, config, slideShowService, rimraf, dialog, serverService, settingsService)
+    fileService = new FileService(
+      db,
+      config,
+      { fs, rimraf, dialog },
+      { slideShowService, serverService, settingsService}
+    )
   }) 
   
   beforeEach(() => {

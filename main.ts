@@ -1,17 +1,16 @@
-// @TODO interfaces
-// @TODO params
-
 // import external modules
 import { app, BrowserWindow, screen, ipcMain } from 'electron'
 import * as path from 'path'
 import * as url from 'url'
+// import internal modules
 import { config } from './lib/config'
 import { startEvents } from './lib/services/browser-events'
 import { Container } from './lib/services/container'
 
-const container = new Container
+// create the service container
+const { services } = new Container
 
-startEvents(ipcMain, container.fileService, container.slideShowService, container.settingsService)
+startEvents(ipcMain, services)
 
 let win: BrowserWindow = null;
 const args = process.argv.slice(1),
@@ -66,8 +65,8 @@ function createWindow(): BrowserWindow {
  */
 function scanPeriodically() {
   setTimeout(() => {
-    container.fileService.scan()
-  }, container.settingsService.get('rescanDelayInMinutes') * 60 * 1000)
+    services.fileService.scan()
+  }, services.settingsService.get('rescanDelayInMinutes') * 60 * 1000)
 }
 
 try {
@@ -95,13 +94,13 @@ try {
   });
 
   app.on('ready', () => {
-    container.idleService.startTimer(win)
+    services.idleService.startTimer(win)
 
-    let pictureDirectory = container.settingsService.get('pictureDirectory')
+    let pictureDirectory = services.settingsService.get('pictureDirectory')
 
     if (pictureDirectory) {
-      container.fileService.scan()
-      container.serverService.startStaticFileServer(pictureDirectory, config.defaults.expressJsPort)
+      services.fileService.scan()
+      services.serverService.startStaticFileServer(pictureDirectory, config.defaults.expressJsPort)
       scanPeriodically()
     }
   })

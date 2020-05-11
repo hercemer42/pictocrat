@@ -1,3 +1,6 @@
+/**
+ * Persists and retrieves the application settings in a file
+ */
 class SettingsService {
   private fs
   private settingsPath

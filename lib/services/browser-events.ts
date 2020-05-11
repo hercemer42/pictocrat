@@ -1,12 +1,11 @@
-// @TODO interface for settings
-
 import { IpcMainEvent } from "electron"
 import { ImageDetails, DirectoryDetails } from "../../models/models"
 
-// @TODO params
-function startEvents (ipcMain, fileService, slideShow, settingsService) {
+function startEvents (ipcMain, services) {
+  const { slideShowService, settingsService, fileService } = services
+
   ipcMain.on('start', (event) => {
-    slideShow.start(event)
+    slideShowService.start(event)
   })
 
   ipcMain.on('getSettings', (event: IpcMainEvent) => {
@@ -14,7 +13,7 @@ function startEvents (ipcMain, fileService, slideShow, settingsService) {
   })
 
   ipcMain.on('stopShow', () => {
-    slideShow.stopShow()
+    slideShowService.stopShow()
   })
 
   ipcMain.on('deleteImage', (event: IpcMainEvent, imageDetails: ImageDetails) => {
@@ -34,11 +33,11 @@ function startEvents (ipcMain, fileService, slideShow, settingsService) {
   })
 
   ipcMain.on('next', (event: IpcMainEvent) => {
-    slideShow.nextInHistory(event)
+    slideShowService.nextInHistory(event)
   })
 
   ipcMain.on('previous', (event: IpcMainEvent) => {
-    slideShow.previousInHistory(event)
+    slideShowService.previousInHistory(event)
   })
 
   ipcMain.on('scan', (event: IpcMainEvent) => {
@@ -61,8 +60,8 @@ function startEvents (ipcMain, fileService, slideShow, settingsService) {
     fileService.showDirectory(directoryDetails)
   })
 
-  ipcMain.on('reHideFiles', (event: IpcMainEvent, ids: Array<string>) => {
-    fileService.reHideFiles(ids)
+  ipcMain.on('hideFilesById', (event: IpcMainEvent, ids: Array<string>) => {
+    fileService.hideFilesById(ids)
   })
 
   ipcMain.on('updateDetails', (event: IpcMainEvent, imageDetails: ImageDetails) => {

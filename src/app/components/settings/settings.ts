@@ -43,6 +43,6 @@ export class SettingsComponent {
       return f._id
     })
 
-    this.rendererSendService.reHideFiles(ids)
+    this.rendererSendService.hideFilesById(ids)
   }
 }

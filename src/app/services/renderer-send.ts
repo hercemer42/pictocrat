@@ -38,8 +38,8 @@ export class RendererSendService {
   }
 
   // for when we want to re-check the directory within the settings/unhide dialog after having unchecked it
-  public reHideFiles(fileIds) {
-    ipcRenderer.send('reHideFiles', fileIds)
+  public hideFilesById(fileIds) {
+    ipcRenderer.send('hideFilesById', fileIds)
   }
 
   public stopShow() {

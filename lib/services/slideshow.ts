@@ -1,6 +1,9 @@
 import { IpcMainEvent } from "electron"
 import { ImageDetails } from "../../models/models"
 
+/**
+ * Controls the slideshow, browsing of images, and image browsing history
+ */
 class SlideShowService {
   private Rx
   private db
@@ -24,6 +27,10 @@ class SlideShowService {
     this.subscription.unsubscribe()
   }
 
+  /**
+   * fetches the tagged image in the image history from the database
+   * @param event
+   */
   historyBrowse(event: IpcMainEvent) {
     const image = this.imageHistory.images[this.imageHistory.position]
 

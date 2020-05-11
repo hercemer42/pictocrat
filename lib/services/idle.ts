@@ -1,5 +1,8 @@
 import { BrowserWindow } from "electron"
 
+/**
+ * The idle service starts the timer that brings the application to the foreground
+ */
 class IdleService {
   private systemIdleTime
   private settingsService
