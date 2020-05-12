@@ -1,5 +1,5 @@
 {
-    "productName": "picture-viewer",
+    "productName": "pictocrat",
     "directories": {
       "output": "release/"
     },
