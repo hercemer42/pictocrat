@@ -25,7 +25,7 @@ describe('Slideshow service', () => {
   let nextImage
 
   before(() => {
-    const settingsPath = 'assets/settings.json'
+    const settingsPath = './test/assets/settings.json'
     settingsService = new SettingsService(fs, settingsPath, config)
     slideShowService = new SlideShowService(db, config, settingsService, Rx)
   }) 

@@ -74,7 +74,7 @@ describe('Files service', () => {
   let settingsService
 
   before(() => {
-    const settingsPath = 'assets/settings.json'
+    const settingsPath = './test/assets/settings.json'
     settingsService = new SettingsService(fs, settingsPath, config)
     const slideShowService = new SlideShowService()
     const serverService = new ServerService(express)
