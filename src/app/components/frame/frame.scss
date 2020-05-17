@@ -33,7 +33,13 @@ body {
   }
 
   .noFolder {
-    padding-top: 160px;
+    position: absolute;
+    left: calc(50% - 218px);
+    top: calc(50% - 81px);
+    background: $menuBackground;
+    color: $menuColor;
+    padding: 0px 20px 20px 20px;
+    text-align: center;
   }
 
   img {

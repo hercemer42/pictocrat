@@ -32,6 +32,10 @@ export class FrameComponent implements OnInit {
           debounceTime(10)
         )
         .subscribe(() => {
+          if (!this.image) {
+            return
+          }
+
           this.imageService.rotateImage(this.image.nativeElement, this.renderer);
         });
   }
