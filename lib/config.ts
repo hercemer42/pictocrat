@@ -9,7 +9,7 @@ const config = {
       'bmp',
       'ico'
   ],
-  appName: 'PictureViewer',
+  appName: 'Pictocrat',
   historyLimit: 101,
   defaults: {
     slideShowInterval: 3000,

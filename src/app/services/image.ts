@@ -1,4 +1,4 @@
-import { Injectable, NgZone, Renderer2 } from '@angular/core'
+import { Injectable, NgZone } from '@angular/core'
 import { ImageDetails } from '../../../models/models'
 import { RendererSendService } from './renderer-send'
 
@@ -95,7 +95,6 @@ export class ImageService {
    */
   public rotateImage(element, renderer) {
     this.imageElement = element
-    renderer = renderer
     const rotation = this.imageDetails.rotate
     const imageRatio = element.naturalWidth/element.naturalHeight
     this.resetPosition(element, renderer)

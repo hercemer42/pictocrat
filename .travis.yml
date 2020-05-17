@@ -13,6 +13,7 @@ install:
   - npm install
 script:
   - ng lint
+  - ng test
   - npm run test
   - npm run e2e
   - npm run build

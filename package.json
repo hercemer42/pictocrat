@@ -34,6 +34,7 @@
     "version": "conventional-changelog -i CHANGELOG.md -s -r 0 && git add CHANGELOG.md",
     "lint": "ng lint",
     "testFront": "ng test",
+    "watchFrontTests": "node_modules/onchange/dist/bin.js 'src/**/*.spec.ts' -- npm run testFront",
     "test": "npm run electron:serve-tsc && mocha --exit",
     "watchNodeTests": "node_modules/onchange/dist/bin.js 'test/**/*.js' 'lib/**/*.ts' -- npm run test",
     "e2e": "npm run build:prod && cross-env TS_NODE_PROJECT='e2e/tsconfig.e2e.json' mocha --timeout 300000 --require ts-node/register e2e/**/*.e2e.ts",
