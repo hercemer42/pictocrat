@@ -1,4 +1,4 @@
-import { Component } from '@angular/core'
+import { Component, Renderer2 } from '@angular/core'
 import { RendererSendService } from '../../services/renderer-send'
 import { SettingsService } from '../../services/settings'
 import { ImageService } from '../../services/image'
@@ -17,7 +17,8 @@ export class MenuComponent {
     public imageService: ImageService,
     public iconsService: IconsService,
     public messageService: MessageService,
-    public rendererSendService: RendererSendService
+    public rendererSendService: RendererSendService,
+    public renderer: Renderer2
   ) { }
 
   public deleteImage() {
