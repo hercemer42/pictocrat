@@ -65,4 +65,8 @@ export class RendererSendService {
   public updateDetails(imageDetails) {
     ipcRenderer.send('updateDetails', imageDetails) 
   }
+
+  public updateSettings(settings) {
+    ipcRenderer.send('updateSettings', settings) 
+  }
 }

@@ -67,6 +67,10 @@ function startEvents (ipcMain, services) {
   ipcMain.on('updateDetails', (event: IpcMainEvent, imageDetails: ImageDetails) => {
     fileService.updateDetails(imageDetails)
   })
+
+  ipcMain.on('updateSettings', (event: IpcMainEvent, settings) => {
+    settingsService.set(settings)
+  })
 }
 
 export { startEvents }

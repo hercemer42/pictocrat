@@ -11,7 +11,17 @@
       </ul>
     </div>
     <div id='settings-right'>
-      <div [hidden]="showMenu != 'general'"><h3>General settings</h3></div>
+      <div [hidden]="showMenu != 'general'"><h3>General settings</h3>
+        <ul>
+          <li>
+            <input
+              type='number'
+              [ngModel]='settingsService.settings.slideShowInterval / 1000'
+              (ngModelChange)='updateSlideshowInterval($event)'
+            >
+          </li>
+        </ul>
+      </div>
       <div [hidden]="showMenu != 'unhide'">
         <h3>Unhide</h3>
         <div *ngFor='let item of settingsService.hiddenList'>

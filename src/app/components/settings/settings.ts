@@ -45,4 +45,13 @@ export class SettingsComponent {
 
     this.rendererSendService.hideFilesById(ids)
   }
+
+  updateSlideshowInterval(event) {
+    if (!event) {
+      return
+    }
+
+    this.settingsService.settings.slideShowInterval = event * 1000
+    this.rendererSendService.updateSettings({ slideShowInterval: this.settingsService.settings.slideShowInterval })
+  }
 }
