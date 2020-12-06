@@ -54,4 +54,10 @@ export class SettingsComponent {
     this.settingsService.settings.slideShowInterval = event * 1000
     this.rendererSendService.updateSettings({ slideShowInterval: this.settingsService.settings.slideShowInterval })
   }
+
+  updateAutoPauseOnMenu(event) {
+    if (!event) {
+      return
+    }
+  }
 }
