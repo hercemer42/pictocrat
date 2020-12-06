@@ -1,6 +1,13 @@
 //colors
-$menuBackground: #252525;
+$dialogBackground: #252525;
 $sidebarBackground: #383838;
-$menuColor: #DDDDDD;
+$dialogColor: #DDDDDD;
 $background: #eaeaea;
 $highlightText: rgb(117, 196, 117);
+$dangerText: rgb(233, 96, 91);
+
+button {
+  border: none;
+  padding: 5px 10px;
+  font-size: 15px;
+}

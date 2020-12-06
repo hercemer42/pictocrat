@@ -12,6 +12,7 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome'
 // components
 import { AppComponent } from './app.component'
 import { FrameComponent } from './components/frame/frame'
+import { ModalComponent } from './components/modal/modal'
 import { SettingsComponent } from './components/settings/settings'
 import { MenuComponent } from './components/menu/menu'
 
@@ -28,6 +29,7 @@ import { MessageService } from './services/message'
   declarations: [
     AppComponent,
     FrameComponent,
+    ModalComponent,
     SettingsComponent,
     MenuComponent
   ],

@@ -10,7 +10,7 @@
     <div class='button' (click)='imageService.next()' data-tooltip='Next image'>
       <fa-icon [icon]="iconsService.faStepForward"></fa-icon>
     </div>
-    <div class='button' (click)='deleteImage()' *ngIf='imageService.imageDetails' data-tooltip='Delete image'>
+    <div class='button' (click)='openDeleteModal()' *ngIf='imageService.imageDetails' data-tooltip='Delete image'>
       <fa-icon [icon]="iconsService.faTrashAlt"></fa-icon>
     </div>
     <div class='button delete' (click)='deleteDirectory()' *ngIf='imageService.imageDetails' data-tooltip='Delete directory'>
@@ -48,4 +48,11 @@
     </div>
     <span [hidden]='!messageService.message'>{{messageService.message}}</span>
   </div>
+  <modal *ngIf='modelOpen === true' (cancelEvent)="closeModal()" (deleteEvent)="deleteImage()">
+    <div>
+      <p>The following image will be permenantly deleted.  Are you sure?</p>
+      <span>{{ imageService.imageDetails.directory + '/' + imageService.imageDetails.imageName}}</span>
+      <img [src]='"http://localhost:" + settingsService.settings.expressJsPort + "/" + imageService.imageDetails.relativeDirectory + "/" + imageService.imageDetails.imageName'/>
+    </div>
+  </modal>
 </div>

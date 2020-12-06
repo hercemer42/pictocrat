@@ -12,6 +12,8 @@ import { IconsService } from '../../services/icons'
 })
 
 export class MenuComponent {
+  modelOpen = false;
+
   constructor(
     public settingsService: SettingsService,
     public imageService: ImageService,
@@ -21,10 +23,17 @@ export class MenuComponent {
     public renderer: Renderer2
   ) { }
 
+  public openDeleteModal() {
+    this.modelOpen = true;
+  }
+
   public deleteImage() {
-    if (window.confirm('Are you sure you want to permanantly delete this image?')) {
-      this.rendererSendService.deleteImage(this.imageService.imageDetails)
-    }
+    this.rendererSendService.deleteImage(this.imageService.imageDetails)
+    this.closeModal()
+  }
+
+  public closeModal() {
+    this.modelOpen = false;
   }
 
   public deleteDirectory() {

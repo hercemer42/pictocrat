@@ -9,7 +9,7 @@
   user-select: none;
 
   .menu {
-    background: $menuBackground;
+    background: $dialogBackground;
     padding: 10px 0px;
     vertical-align: middle;
     
@@ -21,7 +21,7 @@
         position : absolute;
         top: 120%;
         background: white;
-        color: $menuBackground;
+        color: $dialogBackground;
         padding: 2px 5px;
         outline: black solid 1px;
         font-size: 1rem;
@@ -37,7 +37,7 @@
     .button {
       display: inline;
       padding: 0px 15px;
-      color: $menuColor;
+      color: $dialogColor;
       font-size: 2rem;
       position: relative;
       cursor: pointer;
@@ -52,7 +52,7 @@
 
       .folderIconOutline {
         font-size: 1.6rem;
-        color: $menuBackground;
+        color: $dialogBackground;
         position: absolute;
         left: 43%;
         top: 39%;
@@ -62,7 +62,7 @@
 
     >span {
       display: inline;
-      color: $menuColor;
+      color: $dialogColor;
     }
   }
 
@@ -82,3 +82,20 @@
   }
 }
 
+modal {
+  img {
+    max-width: 100px;
+    max-height: auto;
+    display: block;
+  }
+
+  p {
+    margin-bottom: 0.5rem;
+  }
+
+  span {
+    color : $highlightText;
+    display: block;
+    margin-bottom: 0.5rem;
+  }
+}

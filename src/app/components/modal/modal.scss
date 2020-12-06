@@ -1,0 +1,47 @@
+@import '../../shared/scss/styles.scss';
+
+.modal {
+  background-color: $dialogBackground;
+  color: $dialogColor;
+  position: absolute;
+  z-index: 10;
+  width: 400px;
+  max-width: 90%;
+  min-height: 100px;
+  margin-left: calc(50% - 200px);
+  margin-top: 20%;
+  border: thin gray solid;
+  display: flex;
+  flex-direction : column;
+
+  h4 {
+    height: 25px;
+    margin: 0px;
+    padding: 5px 10px 15px 10px;
+    margin-top: 0px;
+    font-size: 1.8rem;
+  }
+
+  .modalContent {
+    padding: 1rem;
+  }
+
+  .buttonBar {
+    margin-bottom: 0.5rem;
+    margin-top: auto;
+    margin-left: auto;
+
+    button {
+      margin-right: 0.5rem;
+    }
+  }
+
+  img {
+    max-height: 50px;
+    max-width: auto;
+  }
+
+  .actionButton {
+    background: $dangerText;
+  }
+}
