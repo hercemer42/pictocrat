@@ -1,6 +1,7 @@
 <menu-component></menu-component>
 <settings-component *ngIf='settingsService.showSettings'></settings-component>
 <div class='container' (click)='imageService.toggleSlideShow()'>
+  <div class='pause' [class.displayPaused]='imageService.slideshowStopped'><fa-icon [icon]="iconsService.faPause"></fa-icon></div>
   <div class='playPause' [class.recentlyClicked]='imageService.recentlyClicked'><fa-icon [icon]="imageService.slideshowStopped ? iconsService.faPause : iconsService.faPlay"></fa-icon></div>
   <div class='imageHolder'>
     <img

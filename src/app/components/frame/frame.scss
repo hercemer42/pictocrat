@@ -26,6 +26,31 @@ body {
     transition-duration: 0s;
   }
 
+  .pause {
+    position: absolute;
+    top: 4rem;
+    left: 2rem;
+    z-index: 10;
+    font-size: 40px;
+    color: white;
+    text-shadow: -px 0 black, 0 1px black, 1px 0 black, 0 -1px black;
+    opacity: 0;
+    transition: opacity .7s ease;
+    display: none;
+  }
+
+  fa-icon g g path {
+    stroke: black;
+    stroke-width: 10;
+  }
+
+  .displayPaused {
+    color: white;
+    opacity: 1 !important;
+    display: inline-block;
+    
+  }
+
   .imageHolder {
     height: 100%;
     margin: 0;
