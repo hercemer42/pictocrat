@@ -94,8 +94,6 @@ try {
   });
 
   app.on('ready', () => {
-    services.idleService.startTimer(win)
-
     let pictureDirectory = services.settingsService.get('pictureDirectory')
 
     if (pictureDirectory) {
