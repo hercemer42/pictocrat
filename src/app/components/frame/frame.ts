@@ -7,6 +7,7 @@ import { RendererOnService } from '../../services/renderer-on'
 import { RendererSendService } from '../../services/renderer-send'
 import { fromEvent } from 'rxjs'
 import { debounceTime } from 'rxjs/operators'
+import exifr from 'exifr'
 
 @Component({
   selector: 'app-frame',
@@ -51,6 +52,9 @@ export class FrameComponent implements OnInit {
   }
   
   onImageLoad() {
-    this.imageService.rotateImage(this.image.nativeElement, this.renderer)
+    exifr.parse(this.image.nativeElement, { translateValues: false })
+    .then(output => {
+      this.imageService.rotateImage(this.image.nativeElement, this.renderer, output.Orientation)
+    })
   }
 }

@@ -41,6 +41,8 @@
     "watchE2eTests": "node_modules/onchange/dist/bin.js 'e2e/**/*.ts' 'src/**/*.ts' -- npm run e2e"
   },
   "dependencies": {
+    "exifr": "6.0.0",
+    "cors": "2.8.5",
     "express": "4.17.1",
     "nedb": "^1.8.0",
     "rimraf": "^2.6.2",

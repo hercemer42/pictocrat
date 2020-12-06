@@ -4,6 +4,7 @@ import * as Rx from 'rxjs/Rx'
 import { app, dialog } from 'electron'
 import * as Datastore from 'nedb'
 import * as express from 'express'
+import * as cors from 'cors'
 import * as rimraf from 'rimraf'
 // import internal modules
 import { FileService } from './files'
@@ -38,7 +39,7 @@ class Container {
     this.services.settingsService = new SettingsService(fs, settingsPath, config)
     this.db = new Datastore({ filename: dbPath, autoload: true });
     this.services.slideShowService = new SlideShowService(this.db, config, this.services.settingsService, Rx)
-    this.services.serverService = new ServerService(express)
+    this.services.serverService = new ServerService(express, cors)
     this.services.fileService = new FileService(this.db, config, { fs, rimraf, dialog },  this.services)
   }
 }

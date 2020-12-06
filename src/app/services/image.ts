@@ -93,7 +93,13 @@ export class ImageService {
    * @param { HTMLImageElement } element the image element
    * @param { Renderer2 } renderer  
    */
-  public rotateImage(element, renderer) {
+  public rotateImage(element, renderer, nativeOrientation = 1) {
+    if (!this.imageDetails.rotate && nativeOrientation > 1) {
+      let exifOrientationMap = { 3: 2, 6: 1, 8: 3 };
+
+      this.imageDetails.rotate = exifOrientationMap[nativeOrientation]
+    }
+
     this.imageElement = element
     const rotation = this.imageDetails.rotate
     const imageRatio = element.naturalWidth/element.naturalHeight
