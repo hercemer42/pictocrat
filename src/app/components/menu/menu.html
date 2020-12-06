@@ -52,7 +52,14 @@
     <div>
       <p>The following image will be permenantly deleted.  Are you sure?</p>
       <span>{{ imageService.imageDetails.directory + '/' + imageService.imageDetails.imageName}}</span>
-      <img [src]='"http://localhost:" + settingsService.settings.expressJsPort + "/" + imageService.imageDetails.relativeDirectory + "/" + imageService.imageDetails.imageName'/>
+      <img
+        #deleteImage
+        [src]='"http://localhost:" + settingsService.settings.expressJsPort + "/" + imageService.imageDetails.relativeDirectory + "/" + imageService.imageDetails.imageName'
+        (load)='onImageLoad()'
+        [class.rotate90]='imageService.imageDetails.rotate == 1 && imageService.rendered'
+        [class.rotate180]='imageService.imageDetails.rotate == 2 && imageService.rendered'
+        [class.rotate270]='imageService.imageDetails.rotate == 3 && imageService.rendered'
+      />
     </div>
   </modal>
 </div>

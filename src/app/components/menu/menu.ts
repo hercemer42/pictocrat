@@ -1,9 +1,11 @@
-import { Component, Renderer2 } from '@angular/core'
+import { Component, Renderer2, ViewChild, ElementRef } from '@angular/core'
 import { RendererSendService } from '../../services/renderer-send'
 import { SettingsService } from '../../services/settings'
 import { ImageService } from '../../services/image'
 import { MessageService } from '../../services/message'
 import { IconsService } from '../../services/icons'
+
+import exifr from 'exifr'
 
 @Component({
   selector: 'menu-component',
@@ -12,6 +14,7 @@ import { IconsService } from '../../services/icons'
 })
 
 export class MenuComponent {
+  @ViewChild('deleteImage') deleteImage: ElementRef;
   modelOpen = false;
 
   constructor(
@@ -59,4 +62,10 @@ export class MenuComponent {
     }
   }
 
+  onImageLoad() {
+    exifr.parse(this.deleteImage.nativeElement, { translateValues: false })
+    .then(output => {
+      this.imageService.rotateImage(this.deleteImage.nativeElement, this.renderer, output.Orientation)
+    })
+  }
 }

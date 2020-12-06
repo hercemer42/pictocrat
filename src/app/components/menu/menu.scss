@@ -83,10 +83,14 @@
 }
 
 modal {
+  position: static;
+
   img {
-    max-width: 100px;
-    max-height: auto;
+    width: 100px;
+    height: auto;
     display: block;
+    position: relative;
+    top: 0px !important;
   }
 
   p {
