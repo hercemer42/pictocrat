@@ -109,7 +109,7 @@ class FileService {
 
       self.db.insert(updates, ((err2) => {
         if (event && !removals.length) {
-          event.sender.send('message', 'Scan complete!')
+          event.sender.send('scanComplete')
         }
 
         removals.forEach((removal, i) => {
@@ -120,7 +120,7 @@ class FileService {
               return
             }
 
-            event.sender.send('message', 'Scan complete!')
+            event.sender.send('scanComplete')
           }))
         })
       }))

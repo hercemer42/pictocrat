@@ -3,6 +3,7 @@
 <div class='container' (click)='imageService.toggleSlideShow()'>
   <div class='pause' [class.displayPaused]='imageService.slideshowStopped'><fa-icon [icon]="iconsService.faPause"></fa-icon></div>
   <div class='playPause' [class.recentlyClicked]='imageService.recentlyClicked'><fa-icon [icon]="imageService.slideshowStopped ? iconsService.faPause : iconsService.faPlay"></fa-icon></div>
+  <div class="loader" *ngIf="imageService.scanning"></div> 
   <div class='imageHolder'>
     <img
       #image
@@ -14,15 +15,15 @@
       [class.rotate180]='imageService.imageDetails.rotate == 2 && imageService.rendered'
       [class.rotate270]='imageService.imageDetails.rotate == 3 && imageService.rendered'
     />
-    </div>
-    <div class='noFolder' *ngIf='settingsService.settings && !settingsService.settings.pictureDirectory'>
-      <h1>
-        Welcome to Pictocrat!
-      </h1>
-      Choose your picture folder to get started.
-      <button (click)='rendererSendService.pickDirectory()'>Choose folder</button>
-    </div>
-    <div *ngIf='notFound'>File not found.
-      <button (click)='rendererSendService.scan()'>Rescan ?</button>
-    </div>
   </div>
+  <div class='noFolder' *ngIf='settingsService.settings && !settingsService.settings.pictureDirectory'>
+    <h1>
+      Welcome to Pictocrat!
+    </h1>
+    Choose your picture folder to get started.
+    <button (click)='rendererSendService.pickDirectory()'>Choose folder</button>
+  </div>
+  <div *ngIf='notFound'>File not found.
+    <button (click)='rendererSendService.scan()'>Rescan ?</button>
+  </div>
+</div>

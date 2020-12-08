@@ -14,7 +14,7 @@ import exifr from 'exifr'
 })
 
 export class MenuComponent {
-  @ViewChild('deleteImage') deleteImage: ElementRef;
+  @ViewChild('imageToDelete') imageToDelete: ElementRef;
   modelOpen = false;
 
   constructor(
@@ -62,10 +62,15 @@ export class MenuComponent {
     }
   }
 
+  public scan() {
+    this.imageService.scanning = true
+    this.rendererSendService.scan()
+  }
+
   onImageLoad() {
-    exifr.parse(this.deleteImage.nativeElement, { translateValues: false })
+    exifr.parse(this.imageToDelete.nativeElement, { translateValues: false })
     .then(output => {
-      this.imageService.rotateImage(this.deleteImage.nativeElement, this.renderer, output.Orientation)
+      this.imageService.rotateImage(this.imageToDelete.nativeElement, this.renderer, output.Orientation)
     })
   }
 }

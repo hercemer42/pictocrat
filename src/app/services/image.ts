@@ -7,6 +7,7 @@ export class ImageService {
   public imageDetails: ImageDetails
   public recentlyClicked = false
   public slideshowStopped = true
+  public scanning = true
 
   private imageElement: HTMLImageElement
   private timer = null

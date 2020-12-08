@@ -22,6 +22,7 @@ export class RendererOnService {
       this.nz.run(() => {
         if (this.firstRun) {
           this.firstRun = false
+          this.imageService.scanning = false
           this.imageService.slideshowStopped = false
         }
       })
@@ -29,6 +30,11 @@ export class RendererOnService {
 
     ipcRenderer.on('message', (event, message) => {
       this.nz.run(() => {this.messageService.showMessage(message)})
+    })
+
+    ipcRenderer.on('scanComplete', (event) => {
+      this.imageService.scanning = false
+      this.nz.run(() => {this.messageService.showMessage('Scan complete!')})
     })
 
     ipcRenderer.on('deleted', (event, message) => {

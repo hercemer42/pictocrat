@@ -34,7 +34,7 @@
         <fa-icon [icon]="iconsService.faFolder"></fa-icon>
       </span>
     </div>
-    <div class='button' (click)='rendererSendService.scan()' data-tooltip='Scan'>
+    <div class='button' (click)='scan()' data-tooltip='Scan'>
       <fa-icon [icon]="iconsService.faSync"></fa-icon>
     </div>
     <div class='button' (click)='settingsService.toggleSettings()' data-tooltip='Settings'>
@@ -53,7 +53,7 @@
       <p>The following image will be permenantly deleted.  Are you sure?</p>
       <span>{{ imageService.imageDetails.directory + '/' + imageService.imageDetails.imageName}}</span>
       <img
-        #deleteImage
+        #imageToDelete
         [src]='"http://localhost:" + settingsService.settings.expressJsPort + "/" + imageService.imageDetails.relativeDirectory + "/" + imageService.imageDetails.imageName'
         (load)='onImageLoad()'
         [class.rotate90]='imageService.imageDetails.rotate == 1 && imageService.rendered'
