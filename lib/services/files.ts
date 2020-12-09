@@ -268,6 +268,7 @@ class FileService {
     this.slideShowService.stopShow()
 
     this.settingsService.set({ pictureDirectory: dir[0] })
+    event.sender.send('sendSettings', this.settingsService.get())
     await this.serverService.startStaticFileServer(dir[0], this.config.defaults.expressJsPort)
 
     const self = this
@@ -275,7 +276,7 @@ class FileService {
     // delete all existing entries from the database and update it with the new ones
     this.db.remove({}, { multi: true }, function () {
       self.db.insert(self.readDirectory(dir[0]), ((err) => {
-        event.sender.send('sendSettings', self.settingsService.get())
+
         self.slideShowService.start(event)
       }))
     })

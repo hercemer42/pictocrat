@@ -3,7 +3,7 @@
 <div class='container' (click)='imageService.toggleSlideShow()'>
   <div class='pause' [class.displayPaused]='imageService.slideshowStopped'><fa-icon [icon]="iconsService.faPause"></fa-icon></div>
   <div class='playPause' [class.recentlyClicked]='imageService.recentlyClicked'><fa-icon [icon]="imageService.slideshowStopped ? iconsService.faPause : iconsService.faPlay"></fa-icon></div>
-  <div class="loader" *ngIf="imageService.scanning"></div> 
+  <div class="loader" *ngIf="imageService.scanning && settingsService.settings && settingsService.settings.pictureDirectory"></div>
   <div class='imageHolder'>
     <img
       #image
