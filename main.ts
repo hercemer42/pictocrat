@@ -36,17 +36,15 @@ function createWindow(): BrowserWindow {
     require('electron-reload')(__dirname, {
       electron: require(`${__dirname}/node_modules/electron`)
     });
+
     win.loadURL('http://localhost:4200');
+    win.webContents.openDevTools();
   } else {
     win.loadURL(url.format({
       pathname: path.join(__dirname, 'dist/index.html'),
       protocol: 'file:',
       slashes: true
     }));
-  }
-
-  if (serve) {
-    win.webContents.openDevTools();
   }
 
   // Emitted when the window is closed.
@@ -71,11 +69,6 @@ function scanPeriodically() {
 
 try {
 
-  // This method will be called when Electron has finished
-  // initialization and is ready to create browser windows.
-  // Some APIs can only be used after this event occurs.
-  app.on('ready', createWindow);
-
   // Quit when all windows are closed.
   app.on('window-all-closed', () => {
     // On OS X it is common for applications and their menu bar
@@ -94,6 +87,10 @@ try {
   });
 
   app.on('ready', () => {
+  // This method will be called when Electron has finished
+  // initialization and is ready to create browser windows.
+  // Some APIs can only be used after this event occurs.
+    createWindow();
     let pictureDirectory = services.settingsService.get('pictureDirectory')
 
     if (pictureDirectory) {
