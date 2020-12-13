@@ -58,15 +58,6 @@ function createWindow(): BrowserWindow {
   return win;
 }
 
-/**
- * Scans for file changes periodically
- */
-function scanPeriodically() {
-  setTimeout(() => {
-    services.fileService.scan()
-  }, services.settingsService.get('rescanDelayInMinutes') * 60 * 1000)
-}
-
 try {
 
   // Quit when all windows are closed.
@@ -94,9 +85,7 @@ try {
     let pictureDirectory = services.settingsService.get('pictureDirectory')
 
     if (pictureDirectory) {
-      services.fileService.scan()
       services.serverService.startStaticFileServer(pictureDirectory, config.defaults.expressJsPort)
-      scanPeriodically()
     }
   })
 } catch (e) {

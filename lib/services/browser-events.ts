@@ -3,8 +3,14 @@ import { ImageDetails, DirectoryDetails } from "../../models/models"
 
 function startEvents (ipcMain, services) {
   const { slideShowService, settingsService, fileService } = services
-
+  
   ipcMain.on('start', (event) => {
+    if (fileService.firstRun) {
+      services.fileService.scan()
+      fileService.scanPeriodically()
+      fileService.firstRun = false
+    }
+
     slideShowService.start(event)
   })
 

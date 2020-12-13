@@ -14,6 +14,8 @@ class FileService {
   private serverService
   private settingsService
 
+  public firstRun = true
+
   /**
    * @param db the database connection
    * @param config 
@@ -280,6 +282,17 @@ class FileService {
         self.slideShowService.start(event)
       }))
     })
+  }
+
+  /**
+   * Scans for file changes periodically
+   */
+  scanPeriodically() {
+    const self = this
+
+    setTimeout(() => {
+      self.scan()
+    }, self.settingsService.get('rescanDelayInMinutes') * 60 * 1000)
   }
 }
 
