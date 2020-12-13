@@ -36,5 +36,12 @@
       "target": [
         "AppImage"
       ]
+    },
+    "raspberrypi": {
+      "icon": "dist/assets/icons",
+      "target": {
+        "target": "AppImage",
+        "arch": ["armv7l"]
+      }
     }
 }
