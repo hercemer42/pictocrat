@@ -54,7 +54,7 @@ export class FrameComponent implements OnInit {
   onImageLoad() {
     exifr.parse(this.image.nativeElement, { translateValues: false })
     .then(output => {
-      this.imageService.rotateImage(this.image.nativeElement, this.renderer, output.Orientation)
+      this.imageService.rotateImage(this.image.nativeElement, this.renderer, output ? output.Orientation : 1)
     })
   }
 }
