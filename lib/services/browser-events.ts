@@ -5,10 +5,15 @@ function startEvents (ipcMain, services) {
   const { slideShowService, settingsService, fileService } = services
   
   ipcMain.on('start', (event) => {
+    if (!services.settingsService.get('pictureDirectory')) {
+      return
+    }
+
     if (fileService.firstRun) {
-      services.fileService.scan()
-      fileService.scanPeriodically()
+      services.fileService.scan(event)
+      fileService.scanPeriodically(event)
       fileService.firstRun = false
+      return
     }
 
     slideShowService.start(event)
@@ -59,19 +64,19 @@ function startEvents (ipcMain, services) {
   })
 
   ipcMain.on('toggleHideFile', (event: IpcMainEvent, imageDetails: ImageDetails) => {
-    fileService.toggleHideFile(imageDetails)
+    fileService.toggleHideFile(imageDetails, event)
   })
 
   ipcMain.on('showDirectory', (event: IpcMainEvent, directoryDetails: DirectoryDetails) => {
-    fileService.showDirectory(directoryDetails)
+    fileService.showDirectory(directoryDetails, event)
   })
 
   ipcMain.on('hideFilesById', (event: IpcMainEvent, ids: Array<string>) => {
-    fileService.hideFilesById(ids)
+    fileService.hideFilesById(ids.toString, event)
   })
 
   ipcMain.on('updateDetails', (event: IpcMainEvent, imageDetails: ImageDetails) => {
-    fileService.updateDetails(imageDetails)
+    fileService.updateDetails(imageDetails, event)
   })
 
   ipcMain.on('updateSettings', (event: IpcMainEvent, settings) => {

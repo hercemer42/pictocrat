@@ -31,24 +31,20 @@ class SlideShowService {
    * fetches the tagged image in the image history from the database
    * @param event
    */
-  historyBrowse(event: IpcMainEvent) {
+  async historyBrowse(event: IpcMainEvent) {
     const image = this.imageHistory.images[this.imageHistory.position]
 
     if (!image) {
       return
     }
 
-    this.db.findOne({_id: image._id}, (err, imageDetails) => {
-      if (err) {
-        return
-      }
+    let imageDetails = await this.db.findOne({_id: image._id}).catch(error => this.sendError(event, error))
 
-      if (!imageDetails) {
-        return
-      }
+    if (!imageDetails) {
+      return
+    }
 
-      event.sender.send('newImage', imageDetails)
-    })
+    event.sender.send('newImage', imageDetails)
   }
 
   next(event: IpcMainEvent) {
@@ -97,48 +93,30 @@ class SlideShowService {
     }
   }
 
-  nextRandomImage(event: IpcMainEvent) {
-    const self = this
+  async nextRandomImage(event: IpcMainEvent) {
+    let count = await this.db.count({ shown: false, hidden: false }).catch(error => this.sendError(event, error))
 
-    this.db.count({ shown: false, hidden: false }, function (err, count) {
-      if (err) {
-        return
-      }
+    if (count === 0) {
+      await this.db.update({}, { $set: { shown: false } }, { multi: true }).catch(error => this.sendError(event, error))
+
+      count = await this.db.count({ shown: false, hidden: false }).catch(error => this.sendError(event, error))
 
       if (count === 0) {
-        self.db.update({}, { $set: { shown: false } }, { multi: true }, (() => {
-          self.db.count({ shown: false, hidden: false }, function (err2, count2) {
-            if (err2) {
-              event.sender.send('message', 'An error has occured!')
-              return
-            }
-
-            if (count2 === 0) {
-              self.stopShow()
-              return
-            }
-
-            self.nextRandomImage(event)
-          })
-        }))
-
+        this.stopShow()
         return
       }
 
-      const skipCount = Math.floor(Math.random() * count)
+      this.nextRandomImage(event)
+    }
 
-      // skip and limit are nedb methods that we use to find a pseudo-random image
-      self.db.find({ shown: false, hidden: false }).skip(skipCount).limit(1).exec((err2, result) => {
-        const imageDetails = result[0]
+    const result = await this.db.random({ shown: false, hidden: false }, count).catch(error => this.sendError(event, error))
 
-        if (!err2) {
-          self.db.update( { _id: imageDetails._id}, { $set: { shown: true } }, (() => {
-            self.updateHistory(imageDetails)
-            event.sender.send('newImage', imageDetails)
-          }))
-        }
-      })
-    })
+    const imageDetails = result[0]
+
+    await this.db.update({}, { $set: { shown: false } }, { multi: true }).catch(error => this.sendError(event, error))
+
+    this.updateHistory(imageDetails)
+    event.sender.send('newImage', imageDetails)
   }
 
   async start(event: IpcMainEvent) {
@@ -146,18 +124,22 @@ class SlideShowService {
     this.stopShow()
 
     if (this.settingsService.get('pictureDirectory')) {
-      const self = this
+      let count = await this.db.count({}).catch(error => this.sendError(event, error))
 
-      await this.db.count({}, function (err, count) {
-        if (count) {
-          self.nextRandomImage(event)
+      if (!count) {
+        return
+      }
 
-          self.subscription = self.Rx.Observable.of(0).delay(self.settingsService.get('slideShowInterval')).repeat().subscribe(() => {
-            self.nextRandomImage(event)
-          })
-        }
+      this.nextRandomImage(event)
+
+      this.subscription = this.Rx.Observable.of(0).delay(this.settingsService.get('slideShowInterval')).repeat().subscribe(() => {
+        this.nextRandomImage(event)
       })
     }
+  }
+
+  private sendError(event, error) {
+    event.sender.send('message', `An error has occured! ${error}`)
   }
 }
 

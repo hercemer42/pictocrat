@@ -1,5 +1,7 @@
 import { ImageDetails, DirectoryDetails } from "../../models/models"
 import { IpcMainEvent } from "electron"
+import { createOfflineCompileUrlResolver } from "@angular/compiler"
+import { doesNotReject } from "assert"
 
 /**
  * Picture file & directory manipulation and retrieval service
@@ -81,61 +83,59 @@ class FileService {
    * and updates the image database and image history with the changes 
    * @param event 
    */
-  scan(event: IpcMainEvent = null) {
+  async scan(event: IpcMainEvent = null) {
     const dir = this.settingsService.get('pictureDirectory')
     const fileDetails = this.readDirectory(dir)
     const updates = []
     const removals = []
     const entriesLookup = {}
     const fileDetailsLookup = {}
-    const self = this
 
-    this.db.find({}, ((err, entries) => {
-      entries.forEach((entry) => {
-        entriesLookup[entry.directory + entry.imageName] = entry
-      })
+    const entries = await this.db.find({}).catch(error => this.sendError(event, error))
 
-      fileDetails.forEach((fileDetail) => {
-        fileDetailsLookup[fileDetail.directory + fileDetail.imageName] = fileDetail
+    entries.forEach((entry) => {
+      entriesLookup[entry.directory + entry.imageName] = entry
+    })
 
-        if (!entriesLookup[fileDetail.directory + fileDetail.imageName]) {
-          updates.push(fileDetail)
-        }
-      })
+    fileDetails.forEach((fileDetail) => {
+      fileDetailsLookup[fileDetail.directory + fileDetail.imageName] = fileDetail
 
-      entries.forEach((entry) => {
-        if (!fileDetailsLookup[entry.directory + entry.imageName]) {
-          removals.push(entry)
-        }
-      })
+      if (!entriesLookup[fileDetail.directory + fileDetail.imageName]) {
+        updates.push(fileDetail)
+      }
+    })
 
-      self.db.insert(updates, ((err2) => {
-        if (event && !removals.length) {
-          event.sender.send('scanComplete')
-        }
+    entries.forEach((entry) => {
+      if (!fileDetailsLookup[entry.directory + entry.imageName]) {
+        removals.push(entry)
+      }
+    })
 
-        removals.forEach((removal, i) => {
-          self.db.remove({ _id : removal._id }, ((err3) => {
-            self.slideShowService.deleteFromHistory(removal)
+    await this.db.insert(updates).catch(error => this.sendError(event, error))
 
-            if (i !== removals.length - 1 || !event) {
-              return
-            }
+    if (event && !removals.length) {
+      event.sender.send('scanComplete')
+    }
 
-            event.sender.send('scanComplete')
-          }))
-        })
-      }))
-    }))
+    removals.forEach(async (removal, i) => {
+      await this.db.remove({ _id : removal._id }).catch(error => this.sendError(event, error))
+
+      this.slideShowService.deleteFromHistory(removal)
+
+      if (i !== removals.length - 1 || !event) {
+        return
+      }
+
+      event.sender.send('scanComplete')
+    })
   }
 
   /** 
    * Gets the list of hidden files to display in the settings unhide page
    */
-  getHiddenList(event: IpcMainEvent) {
-    this.db.find({ hidden: true }).sort({ directory: 1 }).exec((err, entries) => {
-      event.sender.send('sendHiddenList', entries)
-    })
+  async getHiddenList(event: IpcMainEvent) {
+    let entries = await this.db.findAndSort({ hidden: true }, { directory: 1 }).catch(error => this.sendError(event, error))
+    event.sender.send('sendHiddenList', entries)
   }
 
   deleteDirectory(event: IpcMainEvent, imageDetails: ImageDetails) {
@@ -156,12 +156,11 @@ class FileService {
     const self = this
 
     this.rimraf(imageDetails.directory, function () {
-      self.db.remove({directory: imageDetails.directory}, { multi: true }, (() => {
-        self.slideShowService.imageHistory.images = self.slideShowService.imageHistory.images.filter((e) => e.directory !== imageDetails.directory)
-        self.slideShowService.imageHistory.position = self.slideShowService.imageHistory.images.length - 1
+      self.db.remove({directory: imageDetails.directory}, { multi : true }).catch(error => this.sendError(event, error))
+      self.slideShowService.imageHistory.images = self.slideShowService.imageHistory.images.filter((e) => e.directory !== imageDetails.directory)
+      self.slideShowService.imageHistory.position = self.slideShowService.imageHistory.images.length - 1
 
-        event.sender.send('deleted', 'Deleted!')
-      }))
+      event.sender.send('deleted', 'Deleted!')
     })
   }
 
@@ -176,10 +175,9 @@ class FileService {
         return
       }
 
-      self.db.remove({ _id : imageDetails._id }, (() => {
-        self.slideShowService.deleteFromHistory(imageDetails)
-        event.sender.send('deleted', 'Deleted!')
-      }))
+      self.db.remove({ _id : imageDetails._id }).catch(error => this.sendError(event, error))
+      self.slideShowService.deleteFromHistory(imageDetails)
+      event.sender.send('deleted', 'Deleted!')
     })
   }
 
@@ -188,14 +186,12 @@ class FileService {
    * @param event 
    * @param imageDetails 
    */
-  hideImage(event: IpcMainEvent, imageDetails: ImageDetails) {
+  async hideImage(event: IpcMainEvent, imageDetails: ImageDetails) {
     this.slideShowService.stopShow()
-
-    this.db.update( { _id: imageDetails._id}, { $set: { hidden: true } }, () => {
-      this.slideShowService.deleteFromHistory(imageDetails)
-      event.sender.send('hidden', 'Image hidden! You can unhide it from the settings/hidden menu.')
-      this.slideShowService.next(event)
-    })
+    await this.db.update( { _id: imageDetails._id}, { $set: { hidden: true } }).catch(error => this.sendError(event, error))
+    this.slideShowService.deleteFromHistory(imageDetails)
+    event.sender.send('hidden', 'Image hidden! You can unhide it from the settings/hidden menu.')
+    this.slideShowService.next(event)
   }
 
   /**
@@ -203,7 +199,7 @@ class FileService {
    * @param event
    * @param imageDetails 
    */
-  hideDirectory(event: IpcMainEvent, imageDetails: ImageDetails) {
+  async hideDirectory(event: IpcMainEvent, imageDetails: ImageDetails) {
     this.slideShowService.stopShow()
 
     const pictureDirectory = this.settingsService.get('pictureDirectory')
@@ -220,39 +216,54 @@ class FileService {
 
     const self = this
 
-    this.db.update({ directory: imageDetails.directory }, { $set: { hidden: true } }, { multi: true }, (images => {
-      self.slideShowService.imageHistory.images = self.slideShowService.imageHistory.images.filter((e) => e.directory !== imageDetails.directory)
-      self.slideShowService.imageHistory.position = self.slideShowService.imageHistory.images.length - 1
-      event.sender.send('hidden', 'Directory hidden! You can unhide it from the settings/hidden menu.')
-      self.slideShowService.next(event)
-    }))
+    await this.db.update({ directory: imageDetails.directory }, { $set: { hidden: true } }, { multi: true }).catch(error => this.sendError(event, error))
+    self.slideShowService.imageHistory.images = self.slideShowService.imageHistory.images.filter((e) => e.directory !== imageDetails.directory)
+    self.slideShowService.imageHistory.position = self.slideShowService.imageHistory.images.length - 1
+    event.sender.send('hidden', 'Directory hidden! You can unhide it from the settings/hidden menu.')
+    self.slideShowService.next(event)
   }
 
   /**
    * Toggle the hidden attribute of a file 
    * @param imageDetails
    */
-  toggleHideFile(imageDetails: ImageDetails) {
-    this.db.update( { _id: imageDetails._id}, { $set: { hidden: imageDetails.hidden } } )
+  async toggleHideFile(imageDetails: ImageDetails, event: IpcMainEvent) {
+    await this.db.update( { _id: imageDetails._id}, { $set: { hidden: imageDetails.hidden } }).catch(error => this.sendError(event, error))
   }
 
   /**
    * Show (unhide) all files in a directory
    * */
-  showDirectory(directoryDetails: DirectoryDetails) {
-    this.db.update( { directory: directoryDetails.directory }, { $set: { hidden: false } }, { multi: true } )
+  async showDirectory(directoryDetails: DirectoryDetails, event: IpcMainEvent) {
+    await this.db.update( { directory: directoryDetails.directory }, { $set: { hidden: false } }, { multi: true }).catch(error => this.sendError(event, error))
   }
 
   /**
    * Hides a bunch of files by their id
    * @param { string[] }ids the ids of the files to be hidden
    */
-  hideFilesById(ids: Array<string>) {
-    this.db.update( { _id: { $in: ids}}, { $set: { hidden: true }}, { multi: true } )
+  async hideFilesById(ids: Array<string>, event: IpcMainEvent) {
+    await this.db.update( { _id: { $in: ids}}, { $set: { hidden: true }}, { multi: true } ).catch(error => this.sendError(event, error))
   }
 
-  updateDetails(imageDetails: ImageDetails) {
-    this.db.update( { _id: imageDetails._id }, { $set: imageDetails } )
+  async updateDetails(imageDetails: ImageDetails, event: IpcMainEvent) {
+    await this.db.update( { _id: imageDetails._id }, { $set: imageDetails } ).catch(error => this.sendError(event, error))
+  }
+
+  fillBuffer(event: IpcMainEvent, callback) {
+    let buffer = []
+
+    for (let i = 0; i < this.config.defaults.bufferLimit; i++) {
+      this.slideShowService.nextRandomImage(event, imageDetails => {
+        buffer.push(imageDetails)
+        console.log('here', buffer.length, this.config.details.bufferLimit)
+
+        if (buffer.length === this.config.details.bufferLimit) {
+          console.log('buffer', buffer)
+          callback()
+        }
+      })
+    }
   }
 
   /**
@@ -273,26 +284,26 @@ class FileService {
     event.sender.send('sendSettings', this.settingsService.get())
     await this.serverService.startStaticFileServer(dir[0], this.config.defaults.expressJsPort)
 
-    const self = this
-
     // delete all existing entries from the database and update it with the new ones
-    this.db.remove({}, { multi: true }, function () {
-      self.db.insert(self.readDirectory(dir[0]), ((err) => {
+    await this.db.remove({}, { multi: true }).catch(error => this.sendError(event, error))
+    await this.db.insert(this.readDirectory(dir[0])).catch(error => this.sendError(event, error))
 
-        self.slideShowService.start(event)
-      }))
-    })
+    this.slideShowService.start(event)
   }
 
   /**
    * Scans for file changes periodically
    */
-  scanPeriodically() {
+  scanPeriodically(event) {
     const self = this
 
     setTimeout(() => {
-      self.scan()
+      self.scan(event)
     }, self.settingsService.get('rescanDelayInMinutes') * 60 * 1000)
+  }
+
+  private sendError(event, error) {
+    event.sender.send('message', `An error has occured! ${error}`)
   }
 }
 

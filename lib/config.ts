@@ -10,13 +10,14 @@ const config = {
       'ico'
   ],
   appName: 'Pictocrat',
-  historyLimit: 101,
+  historyLimit: 20,
   defaults: {
     slideShowInterval: 3000,
     maximizeOnIdle: true,
     idleTimeout: 900000,
     expressJsPort: 3000,
-    rescanDelayInMinutes: 30
+    rescanDelayInMinutes: 30,
+    bufferLimit: 5
   }
 }
 

@@ -20,11 +20,7 @@ export class RendererOnService {
       this.imageService.imageDetails = imageDetails
 
       this.nz.run(() => {
-        if (this.firstRun) {
-          this.firstRun = false
-          this.imageService.scanning = false
-          this.imageService.slideshowStopped = false
-        }
+        this.imageService.slideshowStopped = false
       })
     })
 
@@ -33,6 +29,11 @@ export class RendererOnService {
     })
 
     ipcRenderer.on('scanComplete', (event) => {
+      if (this.firstRun) {
+        this.firstRun = false
+        ipcRenderer.send('start')
+      }
+
       this.imageService.scanning = false
       this.nz.run(() => {this.messageService.showMessage('Scan complete!')})
     })

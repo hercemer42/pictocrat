@@ -11,6 +11,7 @@ import { FileService } from './files'
 import { SlideShowService } from './slideshow'
 import { SettingsService } from './settings'
 import { ServerService } from './server'
+import { DbAsyncService } from './db-async'
 // import config
 import { config } from '../config'
 
@@ -37,7 +38,8 @@ class Container {
 
     // singleton instantiation
     this.services.settingsService = new SettingsService(fs, settingsPath, config)
-    this.db = new Datastore({ filename: dbPath, autoload: true });
+    // this.db = new Datastore({ filename: dbPath, autoload: true })
+    this.db = new DbAsyncService(Datastore, dbPath)
     this.services.slideShowService = new SlideShowService(this.db, config, this.services.settingsService, Rx)
     this.services.serverService = new ServerService(express, cors)
     this.services.fileService = new FileService(this.db, config, { fs, rimraf, dialog },  this.services)
