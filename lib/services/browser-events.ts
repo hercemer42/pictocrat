@@ -10,6 +10,7 @@ function startEvents (ipcMain, services) {
     }
 
     if (fileService.firstRun) {
+      fileService.fillBuffer(event)
       services.fileService.scan(event)
       fileService.scanPeriodically(event)
       fileService.firstRun = false

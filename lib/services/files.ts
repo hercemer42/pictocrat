@@ -250,20 +250,15 @@ class FileService {
     await this.db.update( { _id: imageDetails._id }, { $set: imageDetails } ).catch(error => this.sendError(event, error))
   }
 
-  fillBuffer(event: IpcMainEvent, callback) {
+  async fillBuffer(event: IpcMainEvent) {
     let buffer = []
 
     for (let i = 0; i < this.config.defaults.bufferLimit; i++) {
-      this.slideShowService.nextRandomImage(event, imageDetails => {
-        buffer.push(imageDetails)
-        console.log('here', buffer.length, this.config.details.bufferLimit)
-
-        if (buffer.length === this.config.details.bufferLimit) {
-          console.log('buffer', buffer)
-          callback()
-        }
-      })
+      let imageDetails = await this.slideShowService.nextRandomImage(event)
+      buffer.push(imageDetails)
     }
+
+    console.log('buffer', buffer)
   }
 
   /**

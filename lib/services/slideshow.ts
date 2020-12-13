@@ -117,6 +117,7 @@ class SlideShowService {
 
     this.updateHistory(imageDetails)
     event.sender.send('newImage', imageDetails)
+    return imageDetails
   }
 
   async start(event: IpcMainEvent) {
