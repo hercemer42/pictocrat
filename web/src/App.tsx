@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
 import { api, inDir, photoUrl, type Image } from './api'
 import { EMPTY_SHOW, append, back, canGoForward, drop, forward, replace } from './history'
+import { prefetcher } from './prefetch'
 import { Settings } from './Settings'
 
 const CONTROLS_TIMEOUT = 10_000  // controls hide, and the show resumes, after this long untouched
@@ -45,6 +46,13 @@ export function App() {
     return next && preload(next)
   }, [])
 
+  const prefetch = useMemo(() => prefetcher(fetchNext), [fetchNext])
+
+  // as soon as a photo is up, start downloading the next one
+  useEffect(() => {
+    if (image) prefetch.start()
+  }, [image, prefetch])
+
   /** Moves forward through the history, or on to a new random photo at its end. */
   const advance = useCallback(async () => {
     if (canGoForward(current.current)) {
@@ -53,14 +61,14 @@ export function App() {
     }
 
     try {
-      const next = await fetchNext()
+      const next = await prefetch.take()
       if (next) setShow(s => append(s, next))
     } catch (error) {
       setMessage(errorText(error))
     } finally {
       setAttempts(n => n + 1)
     }
-  }, [fetchNext])
+  }, [prefetch])
 
   const previous = () => setShow(back)
 
@@ -116,12 +124,15 @@ export function App() {
   const dropAndMoveOn = async (gone: (i: Image) => boolean) => {
     const { show: kept, needsNext } = drop(current.current, gone)
 
+    // the prefetched photo may be in the folder that was just hidden or deleted
+    prefetch.discard()
+
     if (!needsNext) {
       setShow(kept)
       return
     }
 
-    const next = await fetchNext()
+    const next = await prefetch.take()
     setShow(next ? append(kept, next) : kept)
   }
 
