@@ -1,0 +1,20 @@
+import path from 'node:path'
+import { openDb } from './db.ts'
+import { scan } from './scan.ts'
+import { createApp } from './app.ts'
+
+const root = process.env.PICTURES ?? '/pictures'
+const port = Number(process.env.PORT ?? 8095)
+const rescanMinutes = Number(process.env.RESCAN_MINUTES ?? 30)
+const db = openDb(process.env.DB ?? '/data/pictocrat.db')
+
+const rescan = () => scan(db, root).then(
+  r => console.log(`scan: ${r.added} added, ${r.removed} removed, ${r.total} images`),
+  error => console.error('scan failed:', error),
+)
+
+createApp(db, root, path.join(import.meta.dirname, '../web/dist'))
+  .listen(port, () => console.log(`pictocrat listening on :${port}, pictures in ${root}`))
+
+rescan()
+setInterval(rescan, rescanMinutes * 60_000)

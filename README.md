@@ -13,60 +13,64 @@ Fell out with Aunt Ethel? Delete or hide the directory holding her wedding photo
 
 Disclaimer: This is Alpha software so it's highly probable that some things may not work as expected.
 
-* Screensaver - automatically comes to the foreground when the computer is not in use.
-* Random image viewer - randomly displays pictures without repeating any - then starts again.
-* Automatic scan - periodically scans for changes to your picture folder.
-* Browse the history - browse back and forth through the pictures that you have recently viewed.
+* Runs on a home server and plays in any browser - a kitchen tablet, a TV, a laptop.
+* Random slideshow - shows every picture once before repeating any.
+* Automatic scan - picks up new and removed pictures every 30 minutes, or on demand.
+* Browse the history - go back and forth through the last 20 pictures, or swipe on a touch screen.
 * Triage - delete unwanted pictures or folders whenever you want.
-* Hide - hide pictures or folders and unhide them later. 
+* Hide - hide pictures or folders and unhide them later from the settings.
 * Rotate - rotate your images without editing the actual file!
-* Cross platform!  Works in Linux, Mac and Windows (Tested only on Linux at the time of writing)
 
 ## Planned features
 
-### V1 - Release
-
-* Add visual effects for image transitions.
-* Minimize to system tray.
-* Back/forward buttons on hover.
-* Full screen mode.
 * Keyboard controls.
-* Rasberry Pi compatability.
-
-### V2
-
 * Hide/unhide or delete images by selecting from a group of thumbnails
 * Multiple picture folders
 * Tag pictures into categories
 * Play slideshows by category
 * Caption pictures
 
-### V3
-
-* Cloud sync
-
 ## Install
-I plan to provide builds for download for version 1.  For the moment, you'll have to build it.
-I've only tested the linux build so far.
+
+Pictocrat runs as a Docker container. Point it at your picture folder:
+
 ```
-git clone git@github.com:hercemer42/pictocrat.git
-npm install
-npm run electron:linux
-sudo chown root release/linux-unpacked/chrome-sandbox
-sudo chmod 4755 release/linux-unpacked/chrome-sandbox
-./release/linux-unpacked/pictocrat
+git clone https://github.com/hercemer42/pictocrat.git
+cd pictocrat
+docker build -t pictocrat .
+docker run -d --name pictocrat --restart unless-stopped -p 8095:8095 \
+  -v /path/to/your/pictures:/pictures \
+  -v pictocrat-data:/data \
+  pictocrat
+```
+
+Then open `http://<your-server>:8095`.
+
+* Deleting really deletes files from the picture folder, so keep a backup of it.
+* There is no login: anyone who can reach the port can hide and delete pictures. Keep it on your home network.
+* The container runs as uid 1000. Add `--user <uid>:<gid>` if your pictures belong to another user.
+
+### Development
+
+Needs Node 24 or later.
+
+```
+npm install && npm --prefix web install
+mkdir -p data && PICTURES=~/Pictures DB=data/pictocrat.db npm start   # API and photos on :8095
+npm --prefix web run dev                                               # UI with hot reload, proxied to :8095
+npm test
 ```
 
 ## Stack
-Built with [Electron](https://www.electronjs.org/), [NodeJs](https://nodejs.org/en/) and Angular.io.
+[Node.js](https://nodejs.org/en/) 24 (its built-in SQLite, running TypeScript directly) with [Express](https://expressjs.com/) on the server, [React](https://react.dev/) and [Vite](https://vite.dev/) in the browser.
 
 ## Need
 The project was concieved to fulfil a family need. We have a Linux box in our kitchen that we use as a server, for music and to view our family photos.  The default Linux slideshow screensaver (XScreensaver) is great, but it has a tendency to replay the same photos over and over, and you can't interact with it.  I don't really have the time or patience to sit down and triage almost 2 decades worth of digital photos, and I needed a personal project to practise my development skills, so Pictocrat was born!
 
-## Attribution
-A shout out goes to [Maxime Gris](https://www.maximegris.fr), whose excellent Angular-Electron project I used to quickly bootstrap Pictocrat:
+That Linux box is long gone. Pictocrat now runs on our home server, and the kitchen screen is an Android tablet showing it in a browser.
 
-https://github.com/maximegris/angular-electron
+## History
+Pictocrat started in 2020 as an Electron and Angular desktop app, written between May and December of that year. That version is tagged [`0.9.0`](https://github.com/hercemer42/pictocrat/tree/0.9.0); the [`electron-wip`](https://github.com/hercemer42/pictocrat/tree/electron-wip) branch holds the last few minutes of work on it that were never committed at the time. In 2026 it was rewritten as a self-hosted web app, so it can play on any screen in the house.
 
 ## License 
 https://github.com/hercemer42/pictocrat/blob/master/LICENSE.md
