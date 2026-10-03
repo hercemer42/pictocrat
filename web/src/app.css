@@ -189,3 +189,24 @@ button.danger {
 .settings li {
   padding: 4px 0;
 }
+
+/* when the photo was taken, bottom-left; the shadow keeps it readable on bright photos */
+.taken {
+  position: fixed;
+  bottom: 12px;
+  left: 16px;
+  font-size: 18px;
+  opacity: 0.85;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 90%);
+  pointer-events: none;
+}
+
+.settings input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+}
+
+.settings .hint,
+.settings small {
+  opacity: 0.7;
+}

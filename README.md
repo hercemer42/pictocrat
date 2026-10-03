@@ -17,9 +17,11 @@ Disclaimer: This is Alpha software so it's highly probable that some things may 
 * Random slideshow - shows every picture once before repeating any.
 * Automatic scan - picks up new and removed pictures every 30 minutes, or on demand.
 * Browse the history - go back and forth through the last 20 pictures, or swipe on a touch screen.
-* Triage - delete unwanted pictures or folders whenever you want.
+* Triage - delete unwanted pictures or folders whenever you want. They go to a trash you can restore from for 30 days.
 * Hide - hide pictures or folders and unhide them later from the settings.
 * Rotate - rotate your images without editing the actual file!
+* Dates - shows when each picture was taken, from its EXIF data or a date in its folder or file name.
+* New pictures first - optionally, pictures added since the first scan play before the random order resumes.
 
 ## Planned features
 
@@ -46,7 +48,7 @@ docker run -d --name pictocrat --restart unless-stopped -p 8095:8095 \
 
 Then open `http://<your-server>:8095`.
 
-* Deleting really deletes files from the picture folder, so keep a backup of it.
+* Deleted pictures go to a hidden `.pictocrat-trash` folder inside the picture folder and are removed for good after 30 days. Keep a backup of the picture folder anyway.
 * There is no login: anyone who can reach the port can hide and delete pictures. Keep it on your home network.
 * The container runs as uid 1000. Add `--user <uid>:<gid>` if your pictures belong to another user.
 

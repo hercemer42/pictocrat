@@ -1,11 +1,10 @@
 import express from 'express'
-import { rm, unlink } from 'node:fs/promises'
 import path from 'node:path'
 import {
-  type Db, nextImage, getImage, updateImage, deleteImageRow, setDirHidden, deleteDirRows,
-  hiddenImages, getSettings, saveSettings,
+  type Db, nextImage, getImage, updateImage, setDirHidden, hiddenImages, trashEntries, getSettings, saveSettings,
 } from './db.ts'
 import { scan } from './scan.ts'
+import { RestoreConflict, moveToTrash, restoreFromTrash } from './trash.ts'
 
 export function createApp(db: Db, root: string, webDir?: string) {
   const app = express()
@@ -24,7 +23,7 @@ export function createApp(db: Db, root: string, webDir?: string) {
   const badFolder = { error: 'That folder is not inside the picture folder (the picture folder itself cannot be hidden or deleted)' }
 
   app.get('/api/next', (_req, res) => {
-    const image = nextImage(db)
+    const image = nextImage(db, getSettings(db))
     image ? res.json(image) : res.status(204).end()
   })
 
@@ -45,10 +44,7 @@ export function createApp(db: Db, root: string, webDir?: string) {
       return
     }
 
-    await unlink(path.join(root, image.path)).catch(error => {
-      if (error.code !== 'ENOENT') throw error
-    })
-    deleteImageRow(db, image.id)
+    await moveToTrash(db, root, 'photo', image.path)
     res.status(204).end()
   })
 
@@ -71,12 +67,25 @@ export function createApp(db: Db, root: string, webDir?: string) {
       return
     }
 
-    await rm(path.join(root, dir), { recursive: true, force: true })
-    res.json({ deleted: deleteDirRows(db, dir) })
+    res.json({ deleted: await moveToTrash(db, root, 'folder', dir) })
   })
 
   app.get('/api/hidden', (_req, res) => {
     res.json(hiddenImages(db))
+  })
+
+  app.get('/api/trash', (_req, res) => {
+    res.json(trashEntries(db))
+  })
+
+  app.post('/api/trash/:id/restore', async (req, res) => {
+    try {
+      const restored = await restoreFromTrash(db, root, Number(req.params.id))
+      restored === null ? res.status(404).end() : res.json({ restored })
+    } catch (error) {
+      if (!(error instanceof RestoreConflict)) throw error
+      res.status(409).json({ error: error.message })
+    }
   })
 
   app.post('/api/scan', async (_req, res) => {
@@ -87,15 +96,21 @@ export function createApp(db: Db, root: string, webDir?: string) {
     res.json(getSettings(db))
   })
 
+  // takes any subset of the settings
   app.put('/api/settings', (req, res) => {
-    const { interval } = req.body ?? {}
+    const { interval, newFirst } = req.body ?? {}
 
-    if (!Number.isInteger(interval) || interval < 1) {
+    if (interval !== undefined && (!Number.isInteger(interval) || interval < 1)) {
       res.status(400).json({ error: 'interval must be a whole number of seconds, at least 1' })
       return
     }
 
-    res.json(saveSettings(db, { interval }))
+    if (newFirst !== undefined && typeof newFirst !== 'boolean') {
+      res.status(400).json({ error: 'newFirst must be true or false' })
+      return
+    }
+
+    res.json(saveSettings(db, { interval, newFirst }))
   })
 
   app.use('/photos', express.static(root, { dotfiles: 'ignore', index: false, maxAge: '7d' }))

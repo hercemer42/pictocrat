@@ -1,38 +1,48 @@
 import { useEffect, useState, type MouseEvent } from 'react'
-import { api, type Image } from './api'
+import { api, type Image, type Settings as SettingsValues, type TrashEntry } from './api'
 
 type Props = {
-  seconds: number
-  onSeconds: (seconds: number) => void
+  settings: SettingsValues
+  onSettings: (settings: SettingsValues) => void
   onRescan: () => Promise<void>
   onError: (error: unknown) => void
   onClose: () => void
 }
 
-export function Settings({ seconds, onSeconds, onRescan, onError, onClose }: Props) {
+const day = (ms: number) => new Date(ms).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+
+export function Settings({ settings, onSettings, onRescan, onError, onClose }: Props) {
   const [hidden, setHidden] = useState<Image[] | null>(null)
-  const [input, setInput] = useState(String(seconds))
+  const [trash, setTrash] = useState<TrashEntry[] | null>(null)
+  const [input, setInput] = useState(String(settings.interval))
   const [scanning, setScanning] = useState(false)
 
-  const load = () => api.hidden().then(setHidden, onError)
+  const load = () => {
+    api.hidden().then(setHidden, onError)
+    api.trash().then(setTrash, onError)
+  }
 
   useEffect(() => {
     load()
   }, [])
 
-  const saveSeconds = async () => {
-    const value = Number(input)
-
-    if (!Number.isInteger(value) || value < 1) {
-      setInput(String(seconds))
-      return
-    }
-
+  const save = async (changes: Partial<SettingsValues>) => {
     try {
-      onSeconds((await api.saveSettings({ interval: value })).interval)
+      onSettings(await api.saveSettings(changes))
     } catch (error) {
       onError(error)
     }
+  }
+
+  const saveInterval = () => {
+    const value = Number(input)
+
+    if (!Number.isInteger(value) || value < 1) {
+      setInput(String(settings.interval))
+      return
+    }
+
+    save({ interval: value })
   }
 
   const rescan = async () => {
@@ -47,6 +57,8 @@ export function Settings({ seconds, onSeconds, onRescan, onError, onClose }: Pro
     e.preventDefault()  // the button sits inside <summary>; don't toggle the group open
     api.setDirHidden(dir, false).then(load, onError)
   }
+
+  const restore = (entry: TrashEntry) => api.restore(entry.id).then(load, onError)
 
   const groups = Map.groupBy(hidden ?? [], i => i.dir)
 
@@ -65,9 +77,14 @@ export function Settings({ seconds, onSeconds, onRescan, onError, onClose }: Pro
             min={1}
             value={input}
             onChange={e => setInput(e.target.value)}
-            onBlur={saveSeconds}
-            onKeyDown={e => e.key === 'Enter' && saveSeconds()}
+            onBlur={saveInterval}
+            onKeyDown={e => e.key === 'Enter' && saveInterval()}
           />
+        </label>
+
+        <label>
+          <input type="checkbox" checked={settings.newFirst} onChange={e => save({ newFirst: e.target.checked })} />
+          Show newly added photos first
         </label>
 
         <button disabled={scanning} onClick={rescan}>{scanning ? 'Scanning…' : 'Rescan picture folder'}</button>
@@ -91,6 +108,22 @@ export function Settings({ seconds, onSeconds, onRescan, onError, onClose }: Pro
             </ul>
           </details>
         ))}
+
+        <h3>Trash {trash && `(${trash.length})`}</h3>
+        <p className="hint">Deleted photos and folders are kept for 30 days, then removed for good.</p>
+        {trash?.length === 0 && <p>Empty.</p>}
+
+        <ul>
+          {trash?.map(entry => (
+            <li key={entry.id}>
+              <span>
+                {entry.kind === 'folder' ? `Folder "${entry.path}" (${entry.count} photos)` : entry.path}
+                <small> · deleted {day(entry.deletedAt)}</small>
+              </span>
+              <button onClick={() => restore(entry)}>Restore</button>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   )

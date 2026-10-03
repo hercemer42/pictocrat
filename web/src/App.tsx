@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
-import { api, inDir, photoUrl, type Image } from './api'
+import { api, inDir, photoUrl, type Image, type Settings as SettingsValues } from './api'
+import { formatTaken } from './dates'
 import { EMPTY_SHOW, append, back, canGoForward, drop, forward, replace } from './history'
 import { prefetcher } from './prefetch'
 import { Settings } from './Settings'
@@ -25,7 +26,7 @@ export function App() {
   const [touched, setTouched] = useState(0)  // bumped on each interaction, restarting the controls' auto-hide
   const [confirm, setConfirm] = useState<'image' | 'dir' | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const [seconds, setSeconds] = useState(10)
+  const [settings, setSettings] = useState<SettingsValues>({ interval: 10, newFirst: false })
   const [message, setMessage] = useState('')
   const [empty, setEmpty] = useState(false)
 
@@ -73,7 +74,7 @@ export function App() {
   const previous = () => setShow(back)
 
   useEffect(() => {
-    api.settings().then(s => setSeconds(s.interval), error => setMessage(errorText(error)))
+    api.settings().then(setSettings, error => setMessage(errorText(error)))
     advance()
   }, [advance])
 
@@ -81,9 +82,9 @@ export function App() {
 
   useEffect(() => {
     if (paused && !empty) return
-    const timer = setTimeout(advance, (empty ? EMPTY_RETRY : seconds) * 1000)
+    const timer = setTimeout(advance, (empty ? EMPTY_RETRY : settings.interval) * 1000)
     return () => clearTimeout(timer)
-  }, [paused, empty, show, attempts, seconds, advance])
+  }, [paused, empty, show, attempts, settings.interval, advance])
 
   useEffect(() => {
     if (!controls || confirm || settingsOpen) return
@@ -173,11 +174,11 @@ export function App() {
 
     if (kind === 'image') {
       await api.deleteImage(target.id)
-      setMessage('Photo deleted.')
+      setMessage('Photo moved to the trash. You can restore it from Settings for 30 days.')
       await dropAndMoveOn(i => i.id === target.id)
     } else {
       const { deleted } = await api.deleteDir(target.dir)
-      setMessage(`Folder "${target.dir}" deleted (${deleted} photos).`)
+      setMessage(`Folder "${target.dir}" (${deleted} photos) moved to the trash. You can restore it from Settings for 30 days.`)
       await dropAndMoveOn(i => inDir(i, target.dir))
     }
   })
@@ -212,6 +213,8 @@ export function App() {
 
       {!playing && !controls && image && <div className="paused">❚❚ Paused</div>}
 
+      {!controls && image?.taken && <div className="taken">{formatTaken(image.taken)}</div>}
+
       {controls && image && (
         <div className="controls" onPointerDown={poke}>
           <div className="caption">{image.path}</div>
@@ -237,8 +240,8 @@ export function App() {
         <div className="modal-backdrop">
           <div className="modal">
             {confirm === 'image'
-              ? <><p>Delete this photo from the picture folder?</p><code>{image.path}</code></>
-              : <><p>Delete this whole folder, including its subfolders?</p><code>{image.dir}</code></>}
+              ? <><p>Move this photo to the trash? It can be restored from Settings for 30 days.</p><code>{image.path}</code></>
+              : <><p>Move this whole folder, including its subfolders, to the trash? It can be restored from Settings for 30 days.</p><code>{image.dir}</code></>}
             <div className="modal-buttons">
               <button onClick={() => setConfirm(null)}>Cancel</button>
               <button className="danger" onClick={deleteConfirmed}>Delete</button>
@@ -249,8 +252,8 @@ export function App() {
 
       {settingsOpen && (
         <Settings
-          seconds={seconds}
-          onSeconds={setSeconds}
+          settings={settings}
+          onSettings={setSettings}
           onRescan={rescan}
           onError={error => setMessage(errorText(error))}
           onClose={() => { setSettingsOpen(false); poke() }}
