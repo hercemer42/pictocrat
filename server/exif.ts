@@ -38,7 +38,33 @@ export function exifDate(jpeg: Buffer): string | null {
   }
 }
 
+/** Whether an EXIF block (as sharp returns it, "Exif\0\0" + TIFF) names the camera's make or model. */
+export function exifCamera(exif: Buffer | undefined) {
+  if (!exif || exif.toString('latin1', 0, 6) !== 'Exif\0\0') return false
+
+  try {
+    const { ifd0, ascii } = readTiff(exif.subarray(6))
+    return [ifd0.get(0x010f), ifd0.get(0x0110)].some(entry => entry !== undefined && ascii(entry) !== '')
+  } catch {
+    return false
+  }
+}
+
 function tiffDate(tiff: Buffer) {
+  const { ifd0, exifIfd, ascii } = readTiff(tiff)
+
+  const raw = [exifIfd.get(0x9003), ifd0.get(0x0132)]
+    .filter(entry => entry !== undefined)
+    .map(entry => ascii(entry))
+    .find(value => /^(19|20)\d{2}:\d{2}:\d{2}/.test(value))  // cameras with an unset clock write 0000:00:00
+
+  if (!raw) return null
+  const [date, time] = raw.split(' ')
+  return date.replaceAll(':', '-') + (time ? `T${time}` : '')
+}
+
+/** The first image directory and the EXIF sub-directory of a TIFF block, as tag -> entry offset maps. */
+function readTiff(tiff: Buffer) {
   const little = tiff.toString('latin1', 0, 2) === 'II'
   const u16 = (o: number) => little ? tiff.readUInt16LE(o) : tiff.readUInt16BE(o)
   const u32 = (o: number) => little ? tiff.readUInt32LE(o) : tiff.readUInt32BE(o)
@@ -62,14 +88,7 @@ function tiffDate(tiff: Buffer) {
   const exifPointer = ifd0.get(0x8769)
   const exifIfd = exifPointer === undefined ? new Map<number, number>() : entries(u32(exifPointer + 8))
 
-  const raw = [exifIfd.get(0x9003), ifd0.get(0x0132)]
-    .filter(entry => entry !== undefined)
-    .map(entry => ascii(entry))
-    .find(value => /^(19|20)\d{2}:\d{2}:\d{2}/.test(value))  // cameras with an unset clock write 0000:00:00
-
-  if (!raw) return null
-  const [date, time] = raw.split(' ')
-  return date.replaceAll(':', '-') + (time ? `T${time}` : '')
+  return { ifd0, exifIfd, ascii }
 }
 
 /**

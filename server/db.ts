@@ -35,7 +35,14 @@ export function openDb(file: string) {
       rotate INTEGER NOT NULL DEFAULT 0,
       fresh INTEGER NOT NULL DEFAULT 0,      -- added by a scan after the first import, not shown yet
       taken TEXT,                            -- NULL until read, '' when unknown
-      trash_id INTEGER                       -- set while the file is in the trash
+      trash_id INTEGER,                      -- set while the file is in the trash
+      hash TEXT,                             -- SHA-1 of the file, NULL until analysed (see analyse.ts)
+      width INTEGER,                         -- NULL once analysed means the file couldn't be decoded
+      height INTEGER,
+      brightness REAL,
+      sharpness REAL,
+      camera INTEGER,
+      keep INTEGER NOT NULL DEFAULT 0        -- kept in a junk review: don't suggest it again
     );
     CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS trash (
@@ -48,10 +55,16 @@ export function openDb(file: string) {
 
   // databases created before these columns existed
   const columns = new Set((db.prepare('PRAGMA table_info(images)').all() as { name: string }[]).map(c => c.name))
-  for (const [name, type] of [['fresh', 'INTEGER NOT NULL DEFAULT 0'], ['taken', 'TEXT'], ['trash_id', 'INTEGER']]) {
+  const added = [
+    ['fresh', 'INTEGER NOT NULL DEFAULT 0'], ['taken', 'TEXT'], ['trash_id', 'INTEGER'], ['hash', 'TEXT'],
+    ['width', 'INTEGER'], ['height', 'INTEGER'], ['brightness', 'REAL'], ['sharpness', 'REAL'], ['camera', 'INTEGER'],
+    ['keep', 'INTEGER NOT NULL DEFAULT 0'],
+  ]
+  for (const [name, type] of added) {
     if (!columns.has(name)) db.exec(`ALTER TABLE images ADD COLUMN ${name} ${type}`)
   }
 
+  db.exec('CREATE INDEX IF NOT EXISTS images_hash ON images (hash)')
   return db
 }
 
@@ -61,14 +74,19 @@ export type Db = ReturnType<typeof openDb>
 const IN_DIR = '(dir = ? OR substr(dir, 1, length(?) + 1) = ? || \'/\')'
 const inDirArgs = (dir: string) => [dir, dir, dir]
 
+/** Identical files are one photo: only the first visible copy of each plays. */
+const FIRST_COPY = `(hash IS NULL OR width IS NULL OR id = (SELECT min(c.id) FROM images c
+  WHERE c.hash = images.hash AND c.hidden = 0 AND c.trash_id IS NULL))`
+
 /**
  * Picks the next image and marks it shown: the oldest new arrival if `newFirst` is on and there is one,
  * otherwise a random visible image not yet shown this round. Once all have been shown, a new round starts.
  */
 export function nextImage(db: Db, { newFirst = false } = {}): Image | undefined {
-  const pick = db.prepare(`SELECT ${COLUMNS} FROM images WHERE shown = 0 AND hidden = 0 AND ${LIVE} ORDER BY random() LIMIT 1`)
+  const visible = `hidden = 0 AND ${LIVE} AND ${FIRST_COPY}`
+  const pick = db.prepare(`SELECT ${COLUMNS} FROM images WHERE shown = 0 AND ${visible} ORDER BY random() LIMIT 1`)
   let image = newFirst
-    ? db.prepare(`SELECT ${COLUMNS} FROM images WHERE fresh = 1 AND hidden = 0 AND ${LIVE} ORDER BY id LIMIT 1`).get() as Image | undefined
+    ? db.prepare(`SELECT ${COLUMNS} FROM images WHERE fresh = 1 AND ${visible} ORDER BY id LIMIT 1`).get() as Image | undefined
     : undefined
 
   image ??= pick.get() as Image | undefined
@@ -89,20 +107,95 @@ export function getImage(db: Db, id: number) {
   return db.prepare(`SELECT ${COLUMNS} FROM images WHERE id = ? AND ${LIVE}`).get(id) as Image | undefined
 }
 
-export function updateImage(db: Db, id: number, changes: { hidden?: boolean, rotate?: number }) {
-  if (changes.hidden !== undefined) {
-    db.prepare(`UPDATE images SET hidden = ? WHERE id = ? AND ${LIVE}`).run(changes.hidden ? 1 : 0, id)
+/** The live copies of a photo, itself included: other files with identical contents. */
+export function copiesOf(db: Db, id: number) {
+  return db.prepare(`SELECT ${COLUMNS} FROM images WHERE ${LIVE} AND (id = ? OR (width IS NOT NULL AND hash =
+    (SELECT hash FROM images WHERE id = ? AND width IS NOT NULL))) ORDER BY id`).all(id, id) as Image[]
+}
+
+/** Hiding, rotating or keeping a photo applies to all its copies, so another copy doesn't stand in for it. */
+export function updateImage(db: Db, id: number, changes: { hidden?: boolean, rotate?: number, keep?: boolean }) {
+  const ids = copiesOf(db, id).map(i => i.id)
+  const set = (column: string, value: number) => {
+    for (const copy of ids) db.prepare(`UPDATE images SET ${column} = ? WHERE id = ?`).run(value, copy)
   }
 
-  if (changes.rotate !== undefined) {
-    db.prepare(`UPDATE images SET rotate = ? WHERE id = ? AND ${LIVE}`).run(((changes.rotate % 4) + 4) % 4, id)
-  }
+  if (changes.hidden !== undefined) set('hidden', changes.hidden ? 1 : 0)
+  if (changes.rotate !== undefined) set('rotate', ((changes.rotate % 4) + 4) % 4)
+  if (changes.keep !== undefined) set('keep', changes.keep ? 1 : 0)
 
   return getImage(db, id)
 }
 
+// --- junk finder: thresholds over the measurements from analyse.ts ---
+
+export const JUNK = {
+  broken: 'hash IS NOT NULL AND width IS NULL',
+  blurry: 'sharpness < 30',  // checked by eye on the 15,000-photo library: obvious blur still scored 20-27
+  dark: 'brightness < 20',
+  tiny: 'width * height < 300000',
+  screenshots: `camera = 0 AND width IS NOT NULL AND (lower(path) LIKE '%screenshot%' OR lower(path) LIKE '%.png'
+    OR max(width, height) >= 1.9 * min(width, height))`,
+} as const
+
+export type JunkKind = keyof typeof JUNK
+
+const suspects = (kind: JunkKind) => `keep = 0 AND hidden = 0 AND ${LIVE} AND (${JUNK[kind]})`
+
+export function junkCounts(db: Db) {
+  return Object.fromEntries(Object.keys(JUNK).map(kind =>
+    [kind, (db.prepare(`SELECT count(*) AS n FROM images WHERE ${suspects(kind as JunkKind)}`).get() as { n: number }).n],
+  )) as Record<JunkKind, number>
+}
+
+/** The next suspect to review after `afterId`, in a stable order so the page can fetch one ahead. */
+export function nextSuspect(db: Db, kind: JunkKind, afterId = 0) {
+  return db.prepare(`SELECT ${COLUMNS} FROM images WHERE ${suspects(kind)} AND id > ? ORDER BY id LIMIT 1`).get(afterId) as Image | undefined
+}
+
+// --- duplicates ---
+
+export type DuplicateFolder = { dir: string, total: number, duplicated: number, full: boolean }
+
+const isIn = (dir: string, folder: string) => dir === folder || dir.startsWith(folder + '/')
+
+/**
+ * Folders holding photos that also exist elsewhere. `full` folders are entirely copies of photos kept
+ * outside them, so moving one to the trash loses no photo. Nested full folders are reported once, at the top.
+ */
+export function duplicateFolders(db: Db) {
+  const rows = db.prepare(`SELECT id, dir, hash FROM images WHERE ${LIVE} AND width IS NOT NULL`).all() as { id: number, dir: string, hash: string }[]
+  const byHash = Map.groupBy(rows, r => r.hash)
+  const extraCopies = [...byHash.values()].reduce((n, group) => n + group.length - 1, 0)
+
+  const folders = new Set<string>()
+  for (const { dir } of rows) {
+    const parts = dir.split('/')
+    for (let i = 1; i <= parts.length; i++) if (parts[0]) folders.add(parts.slice(0, i).join('/'))
+  }
+
+  const report: DuplicateFolder[] = []
+  for (const folder of folders) {
+    const inside = rows.filter(r => isIn(r.dir, folder))
+    const duplicated = inside.filter(r => byHash.get(r.hash)!.some(other => !isIn(other.dir, folder))).length
+    if (duplicated) report.push({ dir: folder, total: inside.length, duplicated, full: duplicated === inside.length })
+  }
+
+  const fullFolders = report.filter(f => f.full).map(f => f.dir)
+  const shown = report.filter(f => !fullFolders.some(parent => parent !== f.dir && isIn(f.dir, parent)))
+  shown.sort((a, b) => Number(b.full) - Number(a.full) || b.duplicated - a.duplicated)
+
+  return { extraCopies, folders: shown.slice(0, 50) }
+}
+
 export function setDirHidden(db: Db, dir: string, hidden: boolean) {
   return Number(db.prepare(`UPDATE images SET hidden = ? WHERE ${LIVE} AND ${IN_DIR}`).run(hidden ? 1 : 0, ...inDirArgs(dir)).changes)
+}
+
+export function saveAnalysis(db: Db, id: number, a: { hash: string, width: number | null, height: number | null,
+  brightness: number | null, sharpness: number | null, camera: number }) {
+  db.prepare('UPDATE images SET hash = ?, width = ?, height = ?, brightness = ?, sharpness = ?, camera = ? WHERE id = ?')
+    .run(a.hash, a.width, a.height, a.brightness, a.sharpness, a.camera, id)
 }
 
 export function hiddenImages(db: Db) {

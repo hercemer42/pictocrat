@@ -1,7 +1,8 @@
 import express from 'express'
 import path from 'node:path'
 import {
-  type Db, nextImage, getImage, updateImage, setDirHidden, hiddenImages, trashEntries, getSettings, saveSettings,
+  type Db, type JunkKind, JUNK, nextImage, getImage, copiesOf, updateImage, setDirHidden, hiddenImages, trashEntries,
+  junkCounts, nextSuspect, duplicateFolders, getSettings, saveSettings,
 } from './db.ts'
 import { scan } from './scan.ts'
 import { RestoreConflict, moveToTrash, restoreFromTrash } from './trash.ts'
@@ -22,18 +23,37 @@ export function createApp(db: Db, root: string, webDir?: string) {
 
   const badFolder = { error: 'That folder is not inside the picture folder (the picture folder itself cannot be hidden or deleted)' }
 
-  app.get('/api/next', (_req, res) => {
-    const image = nextImage(db, getSettings(db))
+  // the slideshow; with ?review=<junk kind>&after=<id>, the next suspect to review instead
+  app.get('/api/next', (req, res) => {
+    const review = req.query.review
+
+    if (review !== undefined && !(typeof review === 'string' && review in JUNK)) {
+      res.status(400).json({ error: `review must be one of: ${Object.keys(JUNK).join(', ')}` })
+      return
+    }
+
+    const image = review
+      ? nextSuspect(db, review as JunkKind, Number(req.query.after) || 0)
+      : nextImage(db, getSettings(db))
     image ? res.json(image) : res.status(204).end()
   })
 
   app.patch('/api/images/:id', (req, res) => {
-    const { hidden, rotate } = req.body ?? {}
+    const { hidden, rotate, keep } = req.body ?? {}
     const image = updateImage(db, Number(req.params.id), {
       hidden: typeof hidden === 'boolean' ? hidden : undefined,
       rotate: Number.isInteger(rotate) ? rotate : undefined,
+      keep: typeof keep === 'boolean' ? keep : undefined,
     })
     image ? res.json(image) : res.status(404).end()
+  })
+
+  app.get('/api/junk', (_req, res) => {
+    res.json(junkCounts(db))
+  })
+
+  app.get('/api/duplicates', (_req, res) => {
+    res.json(duplicateFolders(db))
   })
 
   app.delete('/api/images/:id', async (req, res) => {
@@ -44,8 +64,10 @@ export function createApp(db: Db, root: string, webDir?: string) {
       return
     }
 
-    await moveToTrash(db, root, 'photo', image.path)
-    res.status(204).end()
+    // every copy goes, or the next copy would just take its place in the slideshow
+    const copies = copiesOf(db, image.id)
+    for (const copy of copies) await moveToTrash(db, root, 'photo', copy.path)
+    res.json({ deleted: copies.length })
   })
 
   app.patch('/api/dirs', (req, res) => {

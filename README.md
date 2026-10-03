@@ -22,6 +22,8 @@ Disclaimer: This is Alpha software so it's highly probable that some things may 
 * Rotate - rotate your images without editing the actual file!
 * Dates - shows when each picture was taken, from its EXIF data or a date in its folder or file name.
 * New pictures first - optionally, pictures added since the first scan play before the random order resumes.
+* Duplicates - identical copies play once; folders that are nothing but copies are listed so you can bin them.
+* Junk finder - flags pictures that won't open, blurry, dark or tiny ones and screenshots, then walks you through them one by one.
 
 ## Planned features
 
@@ -64,7 +66,7 @@ npm test
 ```
 
 ## Stack
-[Node.js](https://nodejs.org/en/) 24 (its built-in SQLite, running TypeScript directly) with [Express](https://expressjs.com/) on the server, [React](https://react.dev/) and [Vite](https://vite.dev/) in the browser.
+[Node.js](https://nodejs.org/en/) 24 (its built-in SQLite, running TypeScript directly) with [Express](https://expressjs.com/) and [sharp](https://sharp.pixelplumbing.com/) on the server, [React](https://react.dev/) and [Vite](https://vite.dev/) in the browser.
 
 ## Need
 The project was concieved to fulfil a family need. We have a Linux box in our kitchen that we use as a server, for music and to view our family photos.  The default Linux slideshow screensaver (XScreensaver) is great, but it has a tendency to replay the same photos over and over, and you can't interact with it.  I don't really have the time or patience to sit down and triage almost 2 decades worth of digital photos, and I needed a personal project to practise my development skills, so Pictocrat was born!

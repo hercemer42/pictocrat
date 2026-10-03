@@ -15,6 +15,7 @@
     "build": "npm --prefix web run build"
   },
   "dependencies": {
-    "express": "5.2.1"
+    "express": "5.2.1",
+    "sharp": "0.35.5"
   }
 }

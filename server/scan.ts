@@ -1,12 +1,13 @@
 import { readdir } from 'node:fs/promises'
 import path from 'node:path'
-import type { Db } from './db.ts'
+import { type Db, saveAnalysis } from './db.ts'
+import { analyse } from './analyse.ts'
 import { dateFromPath, readTakenDate } from './exif.ts'
 
 // formats every browser can display; HEIC and RAW are skipped
 const IMAGE_FILE = /\.(jpe?g|png|gif|webp|avif|bmp)$/i
 
-const DATE_BATCH = 500
+const BATCH = 500  // rows written per transaction while reading dates and analysing
 
 /** Lists image paths relative to root, skipping dot-files and dot-directories (.Trash-1000, the trash etc). */
 export async function listImages(root: string) {
@@ -51,8 +52,25 @@ async function syncFolder(db: Db, root: string) {
   })
 
   await fillDates(db, root)
+  await fillAnalysis(db, root)
 
   return { added: added.length, removed: removed.length, total: onDisk.size }
+}
+
+/** Fingerprints and measures photos not analysed yet (the first run reads the whole library once). */
+async function fillAnalysis(db: Db, root: string) {
+  const pending = db.prepare('SELECT id, path FROM images WHERE hash IS NULL AND trash_id IS NULL').all() as { id: number, path: string }[]
+
+  for (let i = 0; i < pending.length; i += BATCH) {
+    const batch = pending.slice(i, i + BATCH)
+    const results = []
+
+    for (const row of batch) {
+      results.push(await analyse(path.join(root, row.path)).catch(() => null))  // gone since the scan: next time
+    }
+
+    transaction(db, () => batch.forEach((row, j) => { if (results[j]) saveAnalysis(db, row.id, results[j]) }))
+  }
 }
 
 /** Records when each photo was taken: its EXIF date, else a date in its path, else '' (unknown). */
@@ -60,8 +78,8 @@ async function fillDates(db: Db, root: string) {
   const pending = db.prepare('SELECT id, path FROM images WHERE taken IS NULL AND trash_id IS NULL').all() as { id: number, path: string }[]
   const update = db.prepare('UPDATE images SET taken = ? WHERE id = ?')
 
-  for (let i = 0; i < pending.length; i += DATE_BATCH) {
-    const batch = pending.slice(i, i + DATE_BATCH)
+  for (let i = 0; i < pending.length; i += BATCH) {
+    const batch = pending.slice(i, i + BATCH)
     const dates = []
 
     for (const row of batch) {

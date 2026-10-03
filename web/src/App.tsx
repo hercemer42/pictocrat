@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from 'react'
-import { api, inDir, photoUrl, type Image, type Settings as SettingsValues } from './api'
+import { api, inDir, photoUrl, type Image, type JunkKind, type Settings as SettingsValues } from './api'
 import { formatTaken } from './dates'
 import { EMPTY_SHOW, append, back, canGoForward, drop, forward, replace } from './history'
 import { prefetcher } from './prefetch'
@@ -18,6 +18,10 @@ const preload = (image: Image) => new Promise<Image>(resolve => {
 
 const errorText = (error: unknown) => error instanceof Error ? error.message : String(error)
 
+const REVIEW_LABELS: Record<JunkKind, string> = {
+  broken: 'files that won\'t open', blurry: 'blurry photos', dark: 'dark photos', tiny: 'tiny images', screenshots: 'screenshots',
+}
+
 export function App() {
   const [show, setShow] = useState(EMPTY_SHOW)
   const [attempts, setAttempts] = useState(0)  // bumped after every fetch, so the timer re-arms even when nothing changed
@@ -29,7 +33,11 @@ export function App() {
   const [settings, setSettings] = useState<SettingsValues>({ interval: 10, newFirst: false })
   const [message, setMessage] = useState('')
   const [empty, setEmpty] = useState(false)
+  const [review, setReview] = useState<JunkKind | null>(null)  // reviewing junk suspects instead of the slideshow
+  const [left, setLeft] = useState(0)
 
+  const reviewing = useRef(review)
+  reviewing.current = review
   const current = useRef(show)
   current.current = show
   const image = show.history[show.pos]
@@ -42,6 +50,14 @@ export function App() {
   }, [message])
 
   const fetchNext = useCallback(async () => {
+    const kind = reviewing.current
+
+    if (kind) {
+      // suspects come in id order, so the one after the newest in the history is next
+      const next = await api.nextSuspect(kind, current.current.history.at(-1)?.id ?? 0)
+      return next && preload(next)
+    }
+
     const next = await api.next()
     setEmpty(!next)
     return next && preload(next)
@@ -54,22 +70,40 @@ export function App() {
     if (image) prefetch.start()
   }, [image, prefetch])
 
-  /** Moves forward through the history, or on to a new random photo at its end. */
-  const advance = useCallback(async () => {
+  const leaveReview = useCallback(() => {
+    reviewing.current = null
+    setReview(null)
+    prefetch.discard()
+    current.current = EMPTY_SHOW
+    setShow(EMPTY_SHOW)
+  }, [prefetch])
+
+  /** Moves forward through the history, or on to a new photo at its end. In a review, moving on keeps the photo. */
+  const advance = useCallback(async function step(): Promise<void> {
     if (canGoForward(current.current)) {
       setShow(forward(current.current))
       return
     }
 
     try {
+      const { history, pos } = current.current
+      if (reviewing.current && history[pos]) await api.updateImage(history[pos].id, { keep: true })
+
       const next = await prefetch.take()
-      if (next) setShow(s => append(s, next))
+
+      if (next) {
+        setShow(s => append(s, next))
+      } else if (reviewing.current) {
+        leaveReview()
+        setMessage('Nothing left to review. Back to the slideshow.')
+        await step()
+      }
     } catch (error) {
       setMessage(errorText(error))
     } finally {
       setAttempts(n => n + 1)
     }
-  }, [prefetch])
+  }, [prefetch, leaveReview])
 
   const previous = () => setShow(back)
 
@@ -78,7 +112,28 @@ export function App() {
     advance()
   }, [advance])
 
-  const paused = !playing || controls || confirm !== null || settingsOpen
+  const startReview = async (kind: JunkKind) => {
+    setSettingsOpen(false)
+    reviewing.current = kind
+    setReview(kind)
+    prefetch.discard()
+    current.current = EMPTY_SHOW
+    setShow(EMPTY_SHOW)
+    await advance()
+  }
+
+  const stopReview = async () => {
+    poke()
+    leaveReview()
+    await advance()
+  }
+
+  // the count of suspects still to review, refreshed as each one is dealt with
+  useEffect(() => {
+    if (review) api.junk().then(counts => setLeft(counts[review]), () => {})
+  }, [review, show])
+
+  const paused = !playing || controls || confirm !== null || settingsOpen || review !== null
 
   useEffect(() => {
     if (paused && !empty) return
@@ -87,10 +142,10 @@ export function App() {
   }, [paused, empty, show, attempts, settings.interval, advance])
 
   useEffect(() => {
-    if (!controls || confirm || settingsOpen) return
+    if (!controls || confirm || settingsOpen || review) return
     const timer = setTimeout(() => setControls(false), CONTROLS_TIMEOUT)
     return () => clearTimeout(timer)
-  }, [controls, confirm, settingsOpen, touched])
+  }, [controls, confirm, settingsOpen, review, touched])
 
   // swipe left/right moves through the photos, tap toggles the controls
   const downX = useRef<number | null>(null)
@@ -134,6 +189,14 @@ export function App() {
     }
 
     const next = await prefetch.take()
+
+    if (!next && reviewing.current) {
+      leaveReview()
+      setMessage('Nothing left to review. Back to the slideshow.')
+      await advance()
+      return
+    }
+
     setShow(next ? append(kept, next) : kept)
   }
 
@@ -173,8 +236,9 @@ export function App() {
     setConfirm(null)
 
     if (kind === 'image') {
-      await api.deleteImage(target.id)
-      setMessage('Photo moved to the trash. You can restore it from Settings for 30 days.')
+      const { deleted } = await api.deleteImage(target.id)
+      const copies = deleted > 1 ? ` and its ${deleted - 1} ${deleted === 2 ? 'copy' : 'copies'}` : ''
+      setMessage(`Photo${copies} moved to the trash. You can restore it from Settings for 30 days.`)
       await dropAndMoveOn(i => i.id === target.id)
     } else {
       const { deleted } = await api.deleteDir(target.dir)
@@ -215,13 +279,20 @@ export function App() {
 
       {!controls && image?.taken && <div className="taken">{formatTaken(image.taken)}</div>}
 
-      {controls && image && (
+      {review && (
+        <div className="review-banner">
+          <span>Reviewing {REVIEW_LABELS[review]}: {left} left. <strong>Keep</strong> moves on and won't suggest it again.</span>
+          <button onClick={stopReview}>Done</button>
+        </div>
+      )}
+
+      {(controls || review) && image && (
         <div className="controls" onPointerDown={poke}>
           <div className="caption">{image.path}</div>
           <div className="buttons">
             <button onClick={act(previous)}>◀ Previous</button>
-            <button onClick={act(() => setPlaying(p => !p))}>{playing ? '❚❚ Pause' : '▶ Play'}</button>
-            <button onClick={act(advance)}>Next ▶</button>
+            {!review && <button onClick={act(() => setPlaying(p => !p))}>{playing ? '❚❚ Pause' : '▶ Play'}</button>}
+            <button onClick={act(advance)}>{review ? 'Keep ▶' : 'Next ▶'}</button>
             <span className="gap" />
             <button onClick={rotate(-1)}>↺ Rotate</button>
             <button onClick={rotate(1)}>↻ Rotate</button>
@@ -255,6 +326,7 @@ export function App() {
           settings={settings}
           onSettings={setSettings}
           onRescan={rescan}
+          onReview={startReview}
           onError={error => setMessage(errorText(error))}
           onClose={() => { setSettingsOpen(false); poke() }}
         />

@@ -9,7 +9,7 @@ import { openDb } from './db.ts'
 import { scan } from './scan.ts'
 import { createApp } from './app.ts'
 import { TRASH_DIR, purgeTrash } from './trash.ts'
-import { jpegWithDate } from './fixtures.ts'
+import { jpegWithDate, picture } from './fixtures.ts'
 
 const DAY = 86_400_000
 
@@ -91,7 +91,7 @@ test('deleting a photo moves it to the trash and out of the slideshow; restoring
   const image = await (await api('/api/next')).json()
   await api(`/api/images/${image.id}`, 'PATCH', { rotate: 1 })
 
-  assert.equal((await api(`/api/images/${image.id}`, 'DELETE')).status, 204)
+  assert.deepEqual(await (await api(`/api/images/${image.id}`, 'DELETE')).json(), { deleted: 1 })
   const [entry] = await (await api('/api/trash')).json()
   assert.deepEqual({ kind: entry.kind, path: entry.path, count: entry.count }, { kind: 'photo', path: image.path, count: 1 })
   assert.equal(await exists(image.path), false)
@@ -292,4 +292,83 @@ test('settings default to 10s with "new photos first" off, save in parts, and re
   assert.deepEqual(await (await api('/api/settings', 'PUT', { newFirst: true })).json(), { interval: 5, newFirst: true })
   assert.equal((await api('/api/settings', 'PUT', { interval: 0 })).status, 400)
   assert.equal((await api('/api/settings', 'PUT', { newFirst: 'yes' })).status, 400)
+})
+
+async function addFiles(root: string, files: Record<string, Buffer | string>) {
+  for (const [file, content] of Object.entries(files)) {
+    await mkdir(path.dirname(path.join(root, file)), { recursive: true })
+    await writeFile(path.join(root, file), content)
+  }
+}
+
+test('identical photos play once; hiding, rotating or deleting one does the same to its copies', async (t) => {
+  const { root, db, api, next } = await setup(t)
+  const red = await picture({ seed: 1 })
+  await addFiles(root, { 'A/one.jpg': red, 'B/one copy.jpg': red, 'B/two.jpg': await picture({ seed: 2 }) })
+  await api('/api/scan', 'POST')
+
+  // 5 originals (undecodable 'x' files, never treated as copies of each other) + 3 new - 1 duplicate
+  const round = []
+  for (let i = 0; i < 7; i++) round.push(await next())
+  assert.equal(new Set(round).size, 7)
+  assert.equal(round.filter(p => p === 'A/one.jpg' || p === 'B/one copy.jpg').length, 1)
+
+  const listed = await (await api('/api/duplicates')).json()
+  assert.equal(listed.extraCopies, 1)
+  assert.deepEqual(listed.folders, [
+    { dir: 'A', total: 1, duplicated: 1, full: true },
+    { dir: 'B', total: 2, duplicated: 1, full: false },
+  ])
+
+  const { id } = db.prepare('SELECT id FROM images WHERE path = ?').get('A/one.jpg') as { id: number }
+  assert.equal((await (await api(`/api/images/${id}`, 'PATCH', { rotate: 1 })).json()).rotate, 1)
+  await api(`/api/images/${id}`, 'PATCH', { hidden: true })
+  const hidden = (await (await api('/api/hidden')).json()).map((i: { path: string, rotate: number }) => `${i.path}@${i.rotate}`)
+  assert.deepEqual(hidden.sort(), ['A/one.jpg@1', 'B/one copy.jpg@1'])
+
+  await api(`/api/images/${id}`, 'PATCH', { hidden: false })
+  assert.deepEqual(await (await api(`/api/images/${id}`, 'DELETE')).json(), { deleted: 2 })
+  assert.equal((await (await api('/api/trash')).json()).length, 2)
+})
+
+test('a folder that is entirely copies can go to the trash without losing a photo', async (t) => {
+  const { root, api, exists } = await setup(t)
+  const red = await picture({ seed: 1 })
+  await addFiles(root, { 'Originals/red.jpg': red, 'Backup copy/red.jpg': red })
+  await api('/api/scan', 'POST')
+
+  const { folders } = await (await api('/api/duplicates')).json()
+  const full = folders.filter((f: { full: boolean }) => f.full).map((f: { dir: string }) => f.dir)
+  assert.deepEqual(full.sort(), ['Backup copy', 'Originals'], 'either one can go, but not both')
+
+  await api('/api/dirs?dir=Backup%20copy', 'DELETE')
+  assert.equal(await exists('Originals/red.jpg'), true)
+  assert.deepEqual((await (await api('/api/duplicates')).json()).folders, [], 'the survivor is no longer a duplicate')
+})
+
+test('the junk finder flags broken, blurry, dark, tiny and screenshot-like images, and forgets kept ones', async (t) => {
+  const { root, api } = await setup(t)
+  await addFiles(root, {
+    'junk/black.jpg': await picture({ fill: 'black' }),                              // dark, and flat so blurry too
+    'junk/blur.jpg': await picture({ blur: 8 }),                                     // blurry
+    'junk/tiny.jpg': await picture({ width: 100, height: 100 }),                    // tiny
+    'junk/shot.png': await picture({ width: 600, height: 1300, format: 'png' }),    // phone-shaped, no camera: screenshot
+    'ok/phone.jpg': await picture({ width: 600, height: 1300, camera: true }),      // same shape, from a camera: fine
+    'ok/sharp.jpg': await picture({ seed: 3 }),                                      // fine
+  })
+  await api('/api/scan', 'POST')
+
+  // the 5 originals are 'x' text files, so they count as broken
+  assert.deepEqual(await (await api('/api/junk')).json(), { broken: 5, blurry: 2, dark: 1, tiny: 1, screenshots: 1 })
+
+  const shot = await (await api('/api/next?review=screenshots')).json()
+  assert.equal(shot.path, 'junk/shot.png')
+  assert.equal((await api(`/api/next?review=screenshots&after=${shot.id}`)).status, 204, 'nothing after it')
+
+  const first = await (await api('/api/next?review=blurry')).json()
+  await api(`/api/images/${first.id}`, 'PATCH', { keep: true })
+  assert.equal((await (await api('/api/junk')).json()).blurry, 1, 'a kept photo is not suggested again')
+  assert.notEqual((await (await api('/api/next?review=blurry')).json()).id, first.id)
+
+  assert.equal((await api('/api/next?review=nonsense')).status, 400)
 })

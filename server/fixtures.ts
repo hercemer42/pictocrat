@@ -1,3 +1,33 @@
+import sharp from 'sharp'
+
+type PictureOptions = {
+  width?: number
+  height?: number
+  fill?: 'noise' | 'black'  // noise is full of edges (sharp); black is flat
+  blur?: number             // gaussian sigma: smears the edges away
+  format?: 'jpeg' | 'png'
+  camera?: boolean          // write EXIF naming a camera, as phones and cameras do
+  seed?: number             // same seed and options, same bytes
+}
+
+/** A real image file, for the analysis that decodes pictures. */
+export async function picture({ width = 800, height = 600, fill = 'noise', blur, format = 'jpeg', camera = false, seed = 1 }: PictureOptions = {}) {
+  let state = seed >>> 0 || 1
+  const pixels = Buffer.alloc(width * height, fill === 'black' ? 0 : 128)
+
+  if (fill === 'noise') {
+    for (let i = 0; i < pixels.length; i++) {
+      state ^= state << 13; state ^= state >>> 17; state ^= state << 5  // xorshift32: deterministic noise
+      pixels[i] = (state >>> 0) & 255
+    }
+  }
+
+  let image = sharp(pixels, { raw: { width, height, channels: 1 } })
+  if (blur) image = image.blur(blur)
+  if (camera) image = image.withExif({ IFD0: { Make: 'Canon', Model: 'Canon EOS 5D' } })
+  return format === 'png' ? image.png().toBuffer() : image.jpeg().toBuffer()
+}
+
 /**
  * A minimal JPEG whose EXIF carries `date` ("YYYY:MM:DD HH:MM:SS"): in DateTimeOriginal inside the EXIF
  * sub-directory (where cameras put it), or in IFD0's DateTime (`inIfd0`), little- or big-endian.

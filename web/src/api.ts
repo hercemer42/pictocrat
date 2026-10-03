@@ -12,6 +12,11 @@ export type Settings = {
   newFirst: boolean      // newly added photos play before the random order resumes
 }
 
+export const JUNK_KINDS = ['broken', 'blurry', 'dark', 'tiny', 'screenshots'] as const
+export type JunkKind = typeof JUNK_KINDS[number]
+
+export type DuplicateFolder = { dir: string, total: number, duplicated: number, full: boolean }
+
 export type TrashEntry = { id: number, kind: 'photo' | 'folder', path: string, deletedAt: number, count: number }
 
 async function call<T>(url: string, method = 'GET', body?: object): Promise<T> {
@@ -31,8 +36,11 @@ async function call<T>(url: string, method = 'GET', body?: object): Promise<T> {
 
 export const api = {
   next: () => call<Image | undefined>('/api/next'),
-  updateImage: (id: number, changes: { hidden?: boolean, rotate?: number }) => call<Image>(`/api/images/${id}`, 'PATCH', changes),
-  deleteImage: (id: number) => call<void>(`/api/images/${id}`, 'DELETE'),
+  nextSuspect: (kind: JunkKind, afterId: number) => call<Image | undefined>(`/api/next?review=${kind}&after=${afterId}`),
+  junk: () => call<Record<JunkKind, number>>('/api/junk'),
+  duplicates: () => call<{ extraCopies: number, folders: DuplicateFolder[] }>('/api/duplicates'),
+  updateImage: (id: number, changes: { hidden?: boolean, rotate?: number, keep?: boolean }) => call<Image>(`/api/images/${id}`, 'PATCH', changes),
+  deleteImage: (id: number) => call<{ deleted: number }>(`/api/images/${id}`, 'DELETE'),  // the photo and all its copies
   setDirHidden: (dir: string, hidden: boolean) => call<{ changed: number }>('/api/dirs', 'PATCH', { dir, hidden }),
   deleteDir: (dir: string) => call<{ deleted: number }>(`/api/dirs?dir=${encodeURIComponent(dir)}`, 'DELETE'),
   hidden: () => call<Image[]>('/api/hidden'),
